@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  username  String   @unique
+  email     String   @unique
+  password  String
+  avatar    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sessions   ChatSession[]
+  settings   UserSetting?
+
+  @@map("users")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  provider  String
+  model     String
+  title     String   @default("New Chat")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          String  @id @default(cuid())
+  sessionId   String  @map("session_id")
+  role        String
+  content     String
+  provider    String?
+  model       String?
+  tokenInput  Int?    @map("token_input")
+  tokenOutput Int?    @map("token_output")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
+
+model UserSetting {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  defaultProvider String   @default("groq") @map("default_provider")
+  defaultModel    String   @default("llama-3.3-70b-versatile") @map("default_model")
+  theme           String   @default("light")
+  temperature     Float    @default(0.7)
+  maxTokens       Int      @default(4096)
+  topP            Float    @default(1)
+  streaming       Boolean  @default(true)
+  systemPrompt    String   @default("") @map("system_prompt")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}

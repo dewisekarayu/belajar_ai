@@ -1,0 +1,62 @@
+{
+  "name": "ai-chat-premium",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:push": "npx prisma db push",
+    "db:seed": "node prisma/seed.js",
+    "db:reset": "npx prisma db push --force-reset && node prisma/seed.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google/generative-ai": "^0.21.0",
+    "@next/swc-win32-x64-msvc": "^16.2.10",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.7.0",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.0",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^11.11.0",
+    "groq-sdk": "^0.8.0",
+    "highlight.js": "^11.10.0",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.460.0",
+    "next": "^14.2.0",
+    "prisma": "^5.22.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-dropzone": "^14.2.0",
+    "react-hot-toast": "^2.4.0",
+    "react-markdown": "^9.0.0",
+    "react-query": "^3.39.0",
+    "recharts": "^2.13.0",
+    "rehype-highlight": "^7.0.0",
+    "remark-gfm": "^4.0.0",
+    "tailwind-merge": "^2.6.0",
+    "uuid": "^11.0.0",
+    "zod": "^3.23.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.6.0"
+  }
+}
