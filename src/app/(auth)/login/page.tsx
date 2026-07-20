@@ -74,7 +74,7 @@ export default function LoginPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com" required
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
               </div>
             </div>
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                   placeholder="Enter your password" required
-                  className="w-full pl-10 pr-12 py-3 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
+                  className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-pink-400/10 rounded-lg">
                   {showPassword ? <EyeOff className="w-4 h-4 text-text-secondary" /> : <Eye className="w-4 h-4 text-text-secondary" />}

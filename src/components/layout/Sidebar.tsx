@@ -48,12 +48,17 @@ export function Sidebar() {
     if (isCreating) return
     setIsCreating(true)
     try {
-      // Find first enabled provider
-      const enabledProviders = Object.entries(providerStatus).filter(([_, v]) => v)
-      const provider = enabledProviders.length > 0 ? enabledProviders[0][0] : defaultProvider
-      const { getModelsForProvider } = await import('@/lib/providers')
-      const models = getModelsForProvider(provider as any)
-      const model = models[0]?.id || defaultModel
+      // Use default provider/model from settings, fallback to first enabled
+      let provider = defaultProvider
+      let model = defaultModel
+      if (!providerStatus[provider]) {
+        // Default provider not configured, use first enabled
+        const enabledProviders = Object.entries(providerStatus).filter(([_, v]) => v)
+        provider = enabledProviders.length > 0 ? enabledProviders[0][0] : defaultProvider
+        const { getModelsForProvider } = await import('@/lib/providers')
+        const models = getModelsForProvider(provider as any)
+        model = models[0]?.id || defaultModel
+      }
       const sessionId = await createSession(provider, model)
       if (sessionId) {
         router.push('/chat')
@@ -84,7 +89,7 @@ export function Sidebar() {
         {editingId === session.id ? (
           <input value={editTitle} onChange={e => setEditTitle(e.target.value)} onBlur={confirmRename}
             onKeyDown={e => e.key === 'Enter' && confirmRename()}
-            className="flex-1 bg-white border border-border rounded-lg px-2 py-1 text-sm outline-none focus:border-pink-400" autoFocus />
+            className="flex-1 bg-white dark:bg-gray-800 border border-border rounded-lg px-2 py-1 text-sm outline-none focus:border-pink-400" autoFocus />
         ) : (
           <>
             <span className="w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-bold"
@@ -100,9 +105,9 @@ export function Sidebar() {
           </>
         )}
         {contextMenu === session.id && (
-          <div className="absolute right-4 bottom-full mb-2 bg-white rounded-xl shadow-soft-lg border border-border p-1 z-50 w-40" onClick={e => e.stopPropagation()}>
+          <div className="absolute right-4 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-soft-lg border border-border p-1 z-50 w-40" onClick={e => e.stopPropagation()}>
             <button onClick={() => startRename(session.id, session.title)} className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg hover:bg-pink-400/5"><Edit3 className="w-3.5 h-3.5" /> Rename</button>
-            <button onClick={() => { deleteSession(session.id); setContextMenu(null) }} className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg hover:bg-red-50 text-red-500"><Trash2 className="w-3.5 h-3.5" /> Delete</button>
+            <button onClick={() => { deleteSession(session.id); setContextMenu(null) }} className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"><Trash2 className="w-3.5 h-3.5" /> Delete</button>
           </div>
         )}
       </div>
@@ -133,7 +138,7 @@ export function Sidebar() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
           <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Cari chat..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors placeholder:text-text-secondary/50" />
+            className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors placeholder:text-text-secondary/50" />
         </div>
       </div>
 
@@ -156,7 +161,7 @@ export function Sidebar() {
         <a href="/profile" className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-secondary hover:bg-pink-400/5 rounded-xl transition-colors">
           <User className="w-4 h-4" /> Profile
         </a>
-        <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+        <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors">
           <LogOut className="w-4 h-4" /> Logout
         </button>
       </div>

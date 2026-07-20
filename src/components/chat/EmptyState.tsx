@@ -23,12 +23,17 @@ export function EmptyState() {
     if (isCreating) return
     setIsCreating(true)
     try {
-      const enabled = Object.entries(providerStatus).filter(([_, v]) => v)
-      const provider = enabled.length > 0 ? enabled[0][0] : defaultProvider
-      const { getModelsForProvider } = await import('@/lib/providers')
-      const models = getModelsForProvider(provider as any)
-      const modelId = models[0]?.id || defaultModel
-      const sessionId = await createSession(provider, modelId)
+      // Use default provider/model from settings, fallback to first enabled
+      let provider = defaultProvider
+      let model = defaultModel
+      if (!providerStatus[provider]) {
+        const enabled = Object.entries(providerStatus).filter(([_, v]) => v)
+        provider = enabled.length > 0 ? enabled[0][0] : defaultProvider
+        const { getModelsForProvider } = await import('@/lib/providers')
+        const models = getModelsForProvider(provider as any)
+        model = models[0]?.id || defaultModel
+      }
+      const sessionId = await createSession(provider, model)
       if (sessionId && message) {
         // Store pending message for ChatInput to pick up
         sessionStorage.setItem('pending-message-' + sessionId, message)
@@ -67,7 +72,7 @@ export function EmptyState() {
             onChange={e => setInput(e.target.value)}
             placeholder="Ketik pesan..."
             disabled={isCreating}
-            className="w-full bg-white border border-border rounded-2xl pl-4 pr-12 py-3.5 text-sm outline-none focus:border-pink-400 transition-all duration-200 shadow-soft placeholder:text-text-secondary/50 disabled:opacity-50"
+            className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl pl-4 pr-12 py-3.5 text-sm outline-none focus:border-pink-400 transition-all duration-200 shadow-soft placeholder:text-text-secondary/50 disabled:opacity-50"
           />
           <button
             type="submit"

@@ -149,12 +149,12 @@ export default function SettingsPage() {
                     </button>
                   </div>
                   {loadingModels ? (
-                    <div className="mt-1.5 w-full px-4 py-2.5 bg-white border border-border rounded-xl text-sm text-text-secondary flex items-center gap-2">
+                    <div className="mt-1.5 w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm text-text-secondary flex items-center gap-2">
                       <RefreshCw className="w-4 h-4 animate-spin" /> Memuat model...
                     </div>
                   ) : (
                     <select value={defaultModel} onChange={e => updateSettings({ defaultModel: e.target.value })}
-                      className="mt-1.5 w-full px-4 py-2.5 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400">
+                      className="mt-1.5 w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400">
                       {models.length === 0 && <option>Tidak ada model tersedia</option>}
                       {models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                     </select>
@@ -179,7 +179,7 @@ export default function SettingsPage() {
                   <label className="text-sm font-medium">System Prompt</label>
                   <textarea value={systemPrompt} onChange={e => updateSettings({ systemPrompt: e.target.value })}
                     placeholder="Custom system prompt..." rows={4}
-                    className="mt-1.5 w-full px-4 py-2.5 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 resize-none" />
+                    className="mt-1.5 w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 resize-none" />
                 </div>
               </div>
             </div>

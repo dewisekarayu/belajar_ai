@@ -52,8 +52,24 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  const handleSelectModel = (providerId: string, modelId: string) => {
+  const handleSelectModel = async (providerId: string, modelId: string) => {
     updateSettings({ defaultProvider: providerId, defaultModel: modelId })
+
+    // Also update the active session's provider/model if there is one
+    if (session) {
+      try {
+        await fetch(`/api/sessions/${session.id}`, {
+          method: 'PUT', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: providerId, model: modelId }),
+        })
+        useChatStore.setState(state => ({
+          sessions: state.sessions.map(s => s.id === session.id ? { ...s, provider: providerId, model: modelId } : s),
+        }))
+      } catch {
+        // Silently fail - settings are already updated
+      }
+    }
     setShowModelDropdown(false)
   }
 
@@ -88,7 +104,7 @@ export function Header() {
           </button>
 
           {showModelDropdown && (
-            <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-soft-lg border border-border z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-soft-lg border border-border z-50 overflow-hidden">
               <div className="flex border-b border-border">
                 {enabledProviders.map(([key, info]) => (
                   <button key={key}

@@ -129,34 +129,69 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
           updateLastAssistant(sessionId, `**API Key Tidak Valid**\n\n${err.message}`)
           return
         }
+        if (err.type === 'model_not_found') {
+          updateLastAssistant(sessionId, `**Model Tidak Ditemukan**\n\n${err.message}`)
+          return
+        }
+        if (err.type === 'forbidden') {
+          updateLastAssistant(sessionId, `**Akses Ditolak**\n\n${err.message}`)
+          return
+        }
         throw new Error(err.message || 'Request failed')
       }
 
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error('No response body')
-
-      const decoder = new TextDecoder()
+      const contentType = response.headers.get('content-type') || ''
       let fullText = ''
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value, { stream: true })
-        for (const line of chunk.split('\n').filter(l => l.trim())) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '[DONE]') break
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.type === 'text' && parsed.content) {
-                fullText += parsed.content
-                updateLastAssistant(sessionId, fullText)
-              } else if (parsed.type === 'error') {
-                updateLastAssistant(sessionId, `Error: ${parsed.message}`)
-                return
-              }
-            } catch {}
+      if (contentType.includes('text/event-stream')) {
+        // SSE streaming response (Claude)
+        const reader = response.body?.getReader()
+        if (!reader) throw new Error('No response body')
+
+        const decoder = new TextDecoder()
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value, { stream: true })
+          for (const line of chunk.split('\n').filter(l => l.trim())) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6)
+              if (data === '[DONE]') break
+              try {
+                const parsed = JSON.parse(data)
+                if (parsed.type === 'text' && parsed.content) {
+                  fullText += parsed.content
+                  updateLastAssistant(sessionId, fullText)
+                } else if (parsed.type === 'error') {
+                  updateLastAssistant(sessionId, `Error: ${parsed.message}`)
+                  return
+                }
+              } catch {}
+            }
           }
+        }
+      } else {
+        // Plain JSON response (Groq, Gemini, OpenRouter, Cerebras, Mistral, DeepSeek)
+        const result = await response.json()
+        if (result.message) {
+          fullText = result.message
+          updateLastAssistant(sessionId, fullText)
+        } else if (result.type === 'missing_api_key') {
+          updateLastAssistant(sessionId, `**${result.message}**\n\nSilakan konfigurasi API Key untuk provider **${session.provider}** di halaman Settings.`)
+          return
+        } else if (result.type === 'rate_limited') {
+          updateLastAssistant(sessionId, `**Kuota Habis**\n\n${result.message}\n\nCoba gunakan provider lain atau tunggu beberapa saat.`)
+          return
+        } else if (result.type === 'invalid_key') {
+          updateLastAssistant(sessionId, `**API Key Tidak Valid**\n\n${result.message}`)
+          return
+        } else if (result.type === 'model_not_found') {
+          updateLastAssistant(sessionId, `**Model Tidak Ditemukan**\n\n${result.message}`)
+          return
+        } else if (result.type === 'forbidden') {
+          updateLastAssistant(sessionId, `**Akses Ditolak**\n\n${result.message}`)
+          return
         }
       }
 
@@ -209,7 +244,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
         <input {...getInputProps()} />
         <textarea ref={textareaRef} data-chat-input value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
           placeholder="Ketik pesan... (Shift+Enter untuk baris baru)" rows={1}
-          className="w-full resize-none bg-white border border-border rounded-2xl pl-4 pr-24 py-3.5 text-sm outline-none focus:border-pink-400 transition-all duration-200 shadow-soft placeholder:text-text-secondary/50"
+          className="w-full resize-none bg-white dark:bg-gray-800 border border-border rounded-2xl pl-4 pr-24 py-3.5 text-sm outline-none focus:border-pink-400 transition-all duration-200 shadow-soft placeholder:text-text-secondary/50"
           style={{ minHeight: '48px' }} />
       </div>
       <div className="flex items-center justify-between mt-2">

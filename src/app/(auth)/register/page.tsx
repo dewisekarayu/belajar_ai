@@ -93,7 +93,7 @@ export default function RegisterPage() {
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input type="text" name="name" value={form.name} onChange={handleChange}
                   placeholder="John Doe" required
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
               </div>
             </div>
 
@@ -103,7 +103,7 @@ export default function RegisterPage() {
                 <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input type="text" name="username" value={form.username} onChange={handleChange}
                   placeholder="johndoe" required
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
               </div>
             </div>
 
@@ -113,7 +113,7 @@ export default function RegisterPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input type="email" name="email" value={form.email} onChange={handleChange}
                   placeholder="you@example.com" required
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
               </div>
             </div>
 
@@ -123,7 +123,7 @@ export default function RegisterPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange}
                   placeholder="Min 8 characters" required
-                  className="w-full pl-10 pr-12 py-3 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
+                  className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-pink-400/10 rounded-lg">
                   {showPassword ? <EyeOff className="w-4 h-4 text-text-secondary" /> : <Eye className="w-4 h-4 text-text-secondary" />}
@@ -137,7 +137,7 @@ export default function RegisterPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input type={showPassword ? 'text' : 'password'} name="confirmPassword" value={form.confirmPassword} onChange={handleChange}
                   placeholder="Repeat password" required
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-border rounded-xl text-sm outline-none focus:border-pink-400 transition-colors" />
               </div>
             </div>
 

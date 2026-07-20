@@ -16,7 +16,7 @@ interface ChatOptions {
 
 async function chatClaude(messages: ChatMessage[], model: string, options: ChatOptions, stream: boolean) {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
-  const apiKey = process.env.CLAUDE_API_KEY
+  const apiKey = process.env.CLAUDE_API_KEY?.trim()
   if (!apiKey) throw { type: 'missing_api_key', message: 'Claude API Key belum dikonfigurasi.', provider: 'claude' }
 
   const client = new Anthropic({ apiKey })
@@ -52,7 +52,7 @@ async function chatClaude(messages: ChatMessage[], model: string, options: ChatO
 }
 
 async function chatGemini(messages: ChatMessage[], model: string, options: ChatOptions) {
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY?.trim()
   if (!apiKey) throw { type: 'missing_api_key', message: 'Gemini API Key belum dikonfigurasi.', provider: 'gemini' }
 
   const { GoogleGenerativeAI } = await import('@google/generative-ai')
@@ -83,7 +83,7 @@ async function chatGemini(messages: ChatMessage[], model: string, options: ChatO
 }
 
 async function chatGroq(messages: ChatMessage[], model: string, options: ChatOptions) {
-  const apiKey = process.env.GROQ_API_KEY
+  const apiKey = process.env.GROQ_API_KEY?.trim()
   if (!apiKey) throw { type: 'missing_api_key', message: 'Groq API Key belum dikonfigurasi.', provider: 'groq' }
 
   const Groq = (await import('groq-sdk')).default
@@ -110,7 +110,7 @@ async function chatGroq(messages: ChatMessage[], model: string, options: ChatOpt
 }
 
 async function chatOpenRouter(messages: ChatMessage[], model: string, options: ChatOptions) {
-  const apiKey = process.env.OPENROUTER_API_KEY
+  const apiKey = process.env.OPENROUTER_API_KEY?.trim()
   if (!apiKey) throw { type: 'missing_api_key', message: 'OpenRouter API Key belum dikonfigurasi.', provider: 'openrouter' }
 
   const sys = options.systemPrompt || systemPrompt
@@ -123,8 +123,8 @@ async function chatOpenRouter(messages: ChatMessage[], model: string, options: C
   })
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}))
-    throw new Error(err?.error?.message || 'OpenRouter request failed')
+    const errBody = await response.text().catch(() => '')
+    throw new Error(`OpenRouter error ${response.status}: ${errBody}`)
   }
 
   const data = await response.json()
@@ -139,7 +139,7 @@ async function chatOpenRouter(messages: ChatMessage[], model: string, options: C
 }
 
 async function chatCerebras(messages: ChatMessage[], model: string, options: ChatOptions) {
-  const apiKey = process.env.CEREBRAS_API_KEY
+  const apiKey = process.env.CEREBRAS_API_KEY?.trim()
   if (!apiKey) throw { type: 'missing_api_key', message: 'Cerebras API Key belum dikonfigurasi.', provider: 'cerebras' }
 
   const sys = options.systemPrompt || systemPrompt
@@ -151,7 +151,10 @@ async function chatCerebras(messages: ChatMessage[], model: string, options: Cha
     body: JSON.stringify({ model: model || 'llama-3.3-70b', messages: cMessages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens || 4096, top_p: options.topP ?? 1 }),
   })
 
-  if (!response.ok) throw new Error('Cerebras request failed')
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '')
+    throw new Error(`Cerebras error ${response.status}: ${errBody}`)
+  }
   const data = await response.json()
   const choice = data.choices[0]
   const usage = data.usage
@@ -164,7 +167,7 @@ async function chatCerebras(messages: ChatMessage[], model: string, options: Cha
 }
 
 async function chatMistral(messages: ChatMessage[], model: string, options: ChatOptions) {
-  const apiKey = process.env.MISTRAL_API_KEY
+  const apiKey = process.env.MISTRAL_API_KEY?.trim()
   if (!apiKey) throw { type: 'missing_api_key', message: 'Mistral API Key belum dikonfigurasi.', provider: 'mistral' }
 
   const sys = options.systemPrompt || systemPrompt
@@ -176,7 +179,10 @@ async function chatMistral(messages: ChatMessage[], model: string, options: Chat
     body: JSON.stringify({ model: model || 'mistral-large-latest', messages: mMessages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens || 4096, top_p: options.topP ?? 1 }),
   })
 
-  if (!response.ok) throw new Error('Mistral request failed')
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '')
+    throw new Error(`Mistral error ${response.status}: ${errBody}`)
+  }
   const data = await response.json()
   const choice = data.choices[0]
   const usage = data.usage
@@ -189,7 +195,7 @@ async function chatMistral(messages: ChatMessage[], model: string, options: Chat
 }
 
 async function chatDeepSeek(messages: ChatMessage[], model: string, options: ChatOptions) {
-  const apiKey = process.env.DEEPSEEK_API_KEY
+  const apiKey = process.env.DEEPSEEK_API_KEY?.trim()
   if (!apiKey) throw { type: 'missing_api_key', message: 'DeepSeek API Key belum dikonfigurasi.', provider: 'deepseek' }
 
   const sys = options.systemPrompt || systemPrompt
@@ -201,7 +207,10 @@ async function chatDeepSeek(messages: ChatMessage[], model: string, options: Cha
     body: JSON.stringify({ model: model || 'deepseek-chat', messages: dMessages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens || 4096, top_p: options.topP ?? 1 }),
   })
 
-  if (!response.ok) throw new Error('DeepSeek request failed')
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '')
+    throw new Error(`DeepSeek error ${response.status}: ${errBody}`)
+  }
   const data = await response.json()
   const choice = data.choices[0]
   const usage = data.usage
@@ -285,7 +294,14 @@ export async function POST(request: Request) {
       }, { status: 403 })
     }
 
+    if (msg.includes('404') || msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('model_not_found')) {
+      return NextResponse.json({
+        type: 'model_not_found',
+        message: `Model tidak ditemukan atau tidak tersedia. Silakan pilih model lain di dropdown. (${msg.slice(0, 200)})`,
+      }, { status: 404 })
+    }
+
     console.error('Chat error:', error)
-    return NextResponse.json({ message: 'Terjadi kesalahan. Silakan coba lagi atau gunakan provider lain.' }, { status: 500 })
+    return NextResponse.json({ message: `Terjadi kesalahan: ${msg.slice(0, 300)}` }, { status: 500 })
   }
 }
