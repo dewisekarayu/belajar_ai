@@ -1,10 +1,39 @@
 import { NextResponse } from 'next/server'
 
-const systemPrompt = 'You are a helpful AI assistant. Provide clear, concise, and accurate responses. Format responses using Markdown when appropriate.'
+const systemPrompt = `You are a helpful AI assistant with excellent conversation memory. Carefully read and remember everything discussed in this conversation. Reference and build upon previous exchanges when responding. Maintain continuity and context throughout the entire conversation. Keep responses clear, concise, and accurate. Format responses using Markdown when appropriate.`
 
 interface ChatMessage {
   role: string
   content: string
+}
+
+function buildMemoryContext(messages: ChatMessage[]): string {
+  if (messages.length < 4) return ''
+
+  const userMsgs = messages.filter(m => m.role === 'user')
+  const firstTopic = userMsgs[0]?.content.slice(0, 80) || 'unknown'
+
+  return `## Conversation Memory
+- ${messages.length} messages, ${userMsgs.length} exchanges.
+- Started with: "${firstTopic}"`
+}
+
+/**
+ * Truncate messages to avoid hitting provider request size limits.
+ * Keeps first message (conversation opener) + most recent N messages.
+ */
+function truncateMessages(messages: ChatMessage[], maxMessages: number = 20): ChatMessage[] {
+  if (messages.length <= maxMessages) return messages
+
+  // Estimate character-based limit as fallback (rough: ~4 chars per token)
+  const totalChars = JSON.stringify(messages).length
+  const maxChars = maxMessages * 2000 // ~500 tokens per message
+  if (totalChars < maxChars) return messages
+
+  // Keep first message + last (maxMessages - 1) messages
+  const first = messages[0]
+  const last = messages.slice(-(maxMessages - 1))
+  return [first, ...last]
 }
 
 interface ChatOptions {
@@ -240,7 +269,20 @@ export async function POST(request: Request) {
     const handler = handlers[provider]
     if (!handler) return NextResponse.json({ message: `Provider '${provider}' tidak didukung` }, { status: 400 })
 
-    const result = await handler(messages, model, options || {}, stream)
+    // Build memory context from conversation history
+    const memoryContext = buildMemoryContext(messages)
+    const finalSystemPrompt = options?.systemPrompt
+      ? (memoryContext ? `${options.systemPrompt}
+
+${memoryContext}` : options.systemPrompt)
+      : (memoryContext ? `${systemPrompt}
+
+${memoryContext}` : systemPrompt)
+
+    // Truncate messages to avoid provider request size limits
+    const truncatedMessages = truncateMessages(messages)
+
+    const result = await handler(truncatedMessages, model, { ...(options || {}), systemPrompt: finalSystemPrompt }, stream)
 
     if (stream && result.stream) {
       const encoder = new TextEncoder()
@@ -273,6 +315,13 @@ export async function POST(request: Request) {
 
     const msg = error?.message || String(error) || ''
 
+    if (msg.toLowerCase().includes('insufficient') || msg.toLowerCase().includes('balance') || msg.toLowerCase().includes('payment required') || msg.includes('402')) {
+      return NextResponse.json({
+        type: 'no_credits',
+        message: 'Saldo akun provider ini sudah habis. Silakan top up di website provider masing-masing.',
+      }, { status: 402 })
+    }
+
     if (msg.includes('429') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many requests')) {
       return NextResponse.json({
         type: 'rate_limited',
@@ -299,6 +348,13 @@ export async function POST(request: Request) {
         type: 'model_not_found',
         message: `Model tidak ditemukan atau tidak tersedia. Silakan pilih model lain di dropdown. (${msg.slice(0, 200)})`,
       }, { status: 404 })
+    }
+
+    if (msg.includes('413') || msg.toLowerCase().includes('request too large') || msg.toLowerCase().includes('request_too_large') || msg.toLowerCase().includes('entity too large')) {
+      return NextResponse.json({
+        type: 'request_too_large',
+        message: 'Pesan terlalu besar untuk provider ini. Coba mulai percakapan baru atau kurangi panjang pesan.',
+      }, { status: 413 })
     }
 
     console.error('Chat error:', error)

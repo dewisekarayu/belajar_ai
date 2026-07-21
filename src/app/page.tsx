@@ -4,15 +4,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MessageSquare, Brain, Zap, Globe, Shield, Sparkles, ArrowRight } from 'lucide-react'
+import { MessageSquare, Brain, Zap, Globe, Shield, Sparkles, ArrowRight, Bot, Cloud, Cpu } from 'lucide-react'
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.08 } },
 }
 
 export default function LandingPage() {
@@ -29,44 +29,48 @@ export default function LandingPage() {
   }, [])
 
   const features = [
-    { icon: Brain, title: 'Multi-Provider AI', desc: 'Access Claude, Gemini, Groq, and more from one interface.' },
-    { icon: Zap, title: 'Real-Time Streaming', desc: 'Watch AI responses appear in real-time with smooth streaming.' },
-    { icon: Shield, title: 'Secure & Private', desc: 'Your API keys stay on the server. Never exposed to the frontend.' },
-    { icon: Sparkles, title: 'Smart Formatting', desc: 'Beautiful markdown, syntax highlighting, and code blocks.' },
-    { icon: Globe, title: 'Cloud Sync', desc: 'Your conversations sync across devices seamlessly.' },
+    { icon: Brain, title: 'Multi-Provider AI', desc: 'Access Claude, Gemini, Groq, and more from one unified interface.' },
+    { icon: Zap, title: 'Real-Time Streaming', desc: 'Watch AI responses appear in real-time with smooth, efficient streaming.' },
+    { icon: Shield, title: 'Secure & Private', desc: 'Your API keys stay server-side. Never exposed to the frontend.' },
+    { icon: Bot, title: 'Smart Formatting', desc: 'Beautiful markdown, syntax highlighting, and rich code blocks.' },
+    { icon: Cloud, title: 'Cloud Sync', desc: 'Your conversations sync seamlessly across all your devices.' },
+    { icon: Cpu, title: 'Ultra-Fast', desc: 'Optimized performance with blazing-fast response times.' },
   ]
 
   const stats = [
     { value: '7+', label: 'AI Providers' },
-    { value: '20+', label: 'Models' },
+    { value: '200+', label: 'Models' },
     { value: '100K+', label: 'Context Window' },
     { value: '99.9%', label: 'Uptime' },
   ]
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Navigation */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'glass shadow-soft' : 'bg-transparent'}`}>
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-400 to-pink-300 flex items-center justify-center">
-              <MessageSquare className="w-4 h-4 text-white" />
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-soft group-hover:shadow-md transition-shadow">
+              <MessageSquare className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="font-semibold text-text-primary">AI Chat</span>
-          </div>
+            <span className="font-semibold text-lg text-text-primary">AI Chat</span>
+          </Link>
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
               <Link href="/chat"
-                className="px-4 py-2 bg-gradient-to-r from-pink-400 to-pink-300 text-white text-sm font-medium rounded-xl hover:from-pink-500 hover:to-pink-400 transition-all shadow-soft">
-                Open Chat
+                className="relative px-5 py-2.5 bg-accent-600 text-white text-sm font-medium rounded-xl hover:bg-accent-700 transition-all shadow-soft hover:shadow-md active:scale-[0.98] overflow-hidden group">
+                <span className="relative z-10">Open Chat</span>
+                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
               </Link>
             ) : (
               <>
-                <Link href="/login" className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
+                <Link href="/login" className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
                   Sign In
                 </Link>
                 <Link href="/register"
-                  className="px-4 py-2 bg-gradient-to-r from-pink-400 to-pink-300 text-white text-sm font-medium rounded-xl hover:from-pink-500 hover:to-pink-400 transition-all shadow-soft">
-                  Get Started
+                  className="relative px-5 py-2.5 bg-accent-600 text-white text-sm font-medium rounded-xl hover:bg-accent-700 transition-all shadow-soft hover:shadow-md active:scale-[0.98] overflow-hidden group">
+                  <span className="relative z-10">Get Started</span>
+                  <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
                 </Link>
               </>
             )}
@@ -74,75 +78,135 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="relative pt-32 pb-20 px-6 mesh-gradient overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-pink-200/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
+      {/* Hero Section */}
+      <section className="relative pt-36 pb-24 px-6 mesh-gradient overflow-hidden">
+        {/* Ambient blobs */}
+        <div className="absolute top-20 left-10 w-80 h-80 bg-accent-500/8 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent-400/6 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-500/3 rounded-full blur-3xl" />
 
-        <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 bg-pink-400/10 rounded-full text-sm text-pink-500 font-medium mb-6">
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-5xl mx-auto text-center relative z-10">
+          <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent-500/10 backdrop-blur-sm rounded-full text-sm text-accent-600 dark:text-accent-400 font-medium mb-6 border border-accent-500/20">
             <Sparkles className="w-4 h-4" /> Premium AI Chat Experience
           </motion.div>
-          <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold text-text-primary mb-6 leading-tight">
+          <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-8xl font-bold text-text-primary mb-6 leading-[1.1] tracking-tight">
             Chat with AI,
             <br />
-            <span className="bg-gradient-to-r from-pink-400 to-pink-300 bg-clip-text text-transparent">Beautifully</span>
+            <span className="bg-gradient-to-r from-accent-500 via-accent-400 to-accent-500 bg-clip-text text-transparent">Beautifully</span>
           </motion.h1>
-          <motion.p variants={fadeUp} className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
-            Access the most powerful AI models through one elegant interface.
+          <motion.p variants={fadeUp} className="text-lg md:text-xl text-text-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
+            Access the most powerful AI models through one elegant, unified interface.
+            <br className="hidden sm:block" />
+            Experience premium AI chat with real-time streaming and smart formatting.
           </motion.p>
           <motion.div variants={fadeUp} className="flex items-center justify-center gap-4">
             <Link href={isLoggedIn ? '/chat' : '/register'}
-              className="px-8 py-3.5 bg-gradient-to-r from-pink-400 to-pink-300 text-white font-medium rounded-2xl hover:from-pink-500 hover:to-pink-400 transition-all shadow-soft-lg flex items-center gap-2 group">
-              {isLoggedIn ? 'Open Chat' : 'Start Chatting'}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              className="relative group px-8 py-4 bg-accent-600 text-white font-medium rounded-2xl hover:bg-accent-700 transition-all shadow-soft hover:shadow-lg hover:shadow-accent-500/20 active:scale-[0.98] flex items-center gap-2 overflow-hidden">
+              <span className="relative z-10">{isLoggedIn ? 'Open Chat' : 'Start Chatting'}</span>
+              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
+            </Link>
+            <Link href="#features"
+              className="px-8 py-4 text-text-secondary font-medium rounded-2xl hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-all border border-border hover:border-accent-500/20 active:scale-[0.98]">
+              Learn More
             </Link>
           </motion.div>
         </motion.div>
       </section>
 
-      <section className="py-16 px-6 border-y border-border bg-surface/50">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+      {/* Stats Section */}
+      <section className="py-16 px-6 border-y border-border bg-surface/40">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-              <p className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-pink-300 bg-clip-text text-transparent">{stat.value}</p>
-              <p className="text-sm text-text-secondary mt-1">{stat.label}</p>
+            <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="text-center">
+              <p className="text-4xl font-bold bg-gradient-to-r from-accent-500 to-accent-600 bg-clip-text text-transparent">{stat.value}</p>
+              <p className="text-sm text-text-secondary mt-1.5">{stat.label}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      <section id="features" className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-text-primary mb-3">Powerful Features</h2>
-            <p className="text-text-secondary">Everything you need for an exceptional AI chat experience</p>
+      {/* Features Section */}
+      <section id="features" className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-text-primary mb-4 tracking-tight">Powerful Features</h2>
+            <p className="text-lg text-text-secondary max-w-2xl mx-auto">Everything you need for an exceptional AI chat experience — all in one place.</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="p-6 bg-surface border border-border rounded-2xl hover:shadow-soft-lg transition-all group cursor-pointer">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-300 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <f.icon className="w-6 h-6 text-white" />
+                viewport={{ once: true }} transition={{ delay: i * 0.05 }}
+                className="group relative p-6 bg-surface border border-border rounded-2xl hover:shadow-soft-lg hover:border-accent-500/20 transition-all duration-200 card-hover">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent-500/10 to-accent-600/10 border border-accent-500/20 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:from-accent-500/20 group-hover:to-accent-600/20 transition-all duration-200">
+                  <f.icon className="w-5 h-5 text-accent-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-text-primary mb-2">{f.title}</h3>
-                <p className="text-sm text-text-secondary">{f.desc}</p>
+                <h3 className="text-base font-semibold text-text-primary mb-1.5">{f.title}</h3>
+                <p className="text-sm text-text-secondary leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      <footer className="py-8 px-6 border-t border-border bg-surface/50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-400 to-pink-300 flex items-center justify-center">
-              <MessageSquare className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-sm font-medium text-text-primary">AI Chat Premium</span>
+      {/* Providers Section */}
+      <section className="py-24 px-6 bg-surface/40">
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-text-primary mb-4 tracking-tight">Supported AI Providers</h2>
+            <p className="text-lg text-text-secondary max-w-2xl mx-auto">Connect to the world's leading AI models through a single unified interface.</p>
+          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[
+              { name: 'Claude', color: '#D4756B', desc: 'Advanced reasoning & analysis' },
+              { name: 'Gemini', color: '#4285F4', desc: 'Multimodal AI by Google' },
+              { name: 'Groq', color: '#F55036', desc: 'Ultra-fast inference' },
+              { name: 'OpenRouter', color: '#6366F1', desc: 'Multi-model gateway' },
+              { name: 'Cerebras', color: '#FF6B35', desc: 'Fast inference engine' },
+              { name: 'Mistral', color: '#FF7000', desc: 'Efficient AI models' },
+              { name: 'DeepSeek', color: '#4D6BFE', desc: 'Powerful reasoning' },
+            ].map((p, i) => (
+              <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.05 }}
+                className="group relative p-5 bg-surface border border-border rounded-2xl hover:shadow-soft-lg transition-all duration-200 text-center">
+                <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-white font-bold text-lg"
+                  style={{ backgroundColor: p.color }}>
+                  {p.name[0]}
+                </div>
+                <h3 className="text-sm font-semibold text-text-primary mb-0.5">{p.name}</h3>
+                <p className="text-xs text-text-secondary/70">{p.desc}</p>
+              </motion.div>
+            ))}
           </div>
-          <p className="text-xs text-text-secondary">Pink Pastel Theme</p>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-6 border-y border-border bg-accent-600/[0.02]">
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4 tracking-tight">Ready to Get Started?</h2>
+          <p className="text-lg text-text-secondary mb-8">Join thousands of users who rely on AI Chat for their daily workflow.</p>
+          <Link href={isLoggedIn ? '/chat' : '/register'}
+            className="relative inline-flex items-center gap-2 px-8 py-4 bg-accent-600 text-white font-medium rounded-2xl hover:bg-accent-700 transition-all shadow-soft hover:shadow-lg hover:shadow-accent-500/20 active:scale-[0.98] group overflow-hidden">
+            <span className="relative z-10">{isLoggedIn ? 'Open Chat' : 'Create Free Account'}</span>
+            <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
+          </Link>
+        </motion.div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-10 px-6 bg-surface/50">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
+              <MessageSquare className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-sm font-semibold text-text-primary">AI Chat Premium</span>
+          </div>
+          <p className="text-xs text-text-secondary">© 2026 AI Chat Premium. Built with modern technology.</p>
         </div>
       </footer>
     </div>

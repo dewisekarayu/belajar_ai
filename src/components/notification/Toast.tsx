@@ -11,25 +11,21 @@ export function NotificationProvider() {
       toastOptions={{
         duration: 4000,
         style: {
-          background: '#FFFFFF',
-          color: '#2F2F35',
-          borderRadius: '16px',
-          border: '1px solid #F8D3E7',
-          padding: '12px 16px',
+          background: 'var(--bg-surface)',
+          color: 'var(--text-primary)',
+          borderRadius: '14px',
+          border: '1px solid var(--border-color)',
+          padding: '14px 18px',
           fontSize: '14px',
-          boxShadow: '0 4px 15px -3px rgba(255, 181, 220, 0.15)',
+          fontWeight: '500',
+          boxShadow: 'var(--shadow-lg)',
+          backdropFilter: 'blur(16px)',
         },
         success: {
-          iconTheme: {
-            primary: '#A7E8C5',
-            secondary: '#FFFFFF',
-          },
+          icon: <CheckCircle className="w-5 h-5 text-success" />,
         },
         error: {
-          iconTheme: {
-            primary: '#F6A6B2',
-            secondary: '#FFFFFF',
-          },
+          icon: <XCircle className="w-5 h-5 text-error" />,
         },
       }}
     />
@@ -45,15 +41,15 @@ export function notifyError(message: string) {
 }
 
 export function notifyWarning(message: string) {
-  toast(message, { icon: <AlertTriangle className="w-4 h-4 text-warning" /> })
+  toast(message, { icon: <AlertTriangle className="w-5 h-5 text-warning" /> })
 }
 
 export function notifyInfo(message: string) {
-  toast(message, { icon: <Info className="w-4 h-4 text-pink-400" /> })
+  toast(message, { icon: <Info className="w-5 h-5 text-accent-500" /> })
 }
 
 export function notifyLoading(message: string) {
   return toast.loading(message, {
-    icon: <Loader2 className="w-4 h-4 text-pink-400 animate-spin" />,
+    icon: <Loader2 className="w-5 h-5 text-accent-500 animate-spin" />,
   })
 }

@@ -7,8 +7,9 @@ const GEMINI_MODELS: AIModel[] = [
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', provider: 'gemini', maxTokens: 8192, contextWindow: 1000000, inputPrice: 0.075, outputPrice: 0.3, supportsStreaming: true, supportsImages: true },
   { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'gemini', maxTokens: 8192, contextWindow: 1000000, inputPrice: 0.1, outputPrice: 0.4, supportsStreaming: true, supportsImages: true },
   { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', provider: 'gemini', maxTokens: 8192, contextWindow: 1000000, inputPrice: 0.0375, outputPrice: 0.15, supportsStreaming: true, supportsImages: true },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'gemini', maxTokens: 8192, contextWindow: 2000000, inputPrice: 1.25, outputPrice: 5, supportsStreaming: true, supportsImages: true },
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'gemini', maxTokens: 8192, contextWindow: 1000000, inputPrice: 0.075, outputPrice: 0.3, supportsStreaming: true, supportsImages: true },
+  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Preview)', provider: 'gemini', maxTokens: 8192, contextWindow: 1000000, inputPrice: 1.25, outputPrice: 10, supportsStreaming: true, supportsImages: true },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)', provider: 'gemini', maxTokens: 8192, contextWindow: 1000000, inputPrice: 0.15, outputPrice: 0.6, supportsStreaming: true, supportsImages: true },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', provider: 'gemini', maxTokens: 8192, contextWindow: 1000000, inputPrice: 0.15, outputPrice: 0.6, supportsStreaming: true, supportsImages: true },
 ]
 
 export class GeminiProvider extends BaseAIProvider {

@@ -56,6 +56,34 @@ async function fetchOpenRouterModels(): Promise<AIModel[]> {
   }
 }
 
+async function fetchCerebrasModels(): Promise<AIModel[]> {
+  const apiKey = process.env.CEREBRAS_API_KEY?.trim()
+  if (!apiKey) return getModelsForProvider('cerebras')
+
+  try {
+    const res = await fetch('https://api.cerebras.ai/v1/models', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    })
+    if (!res.ok) return getModelsForProvider('cerebras')
+    const data = await res.json()
+    return (data.data || [])
+      .map((m: any) => ({
+        id: m.id,
+        name: m.id.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+        provider: 'cerebras' as const,
+        maxTokens: 8192,
+        contextWindow: 128000,
+        inputPrice: 0,
+        outputPrice: 0,
+        supportsStreaming: true,
+        supportsImages: false,
+      }))
+      .sort((a: AIModel, b: AIModel) => a.name.localeCompare(b.name))
+  } catch {
+    return getModelsForProvider('cerebras')
+  }
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const provider = url.searchParams.get('provider')
@@ -72,6 +100,9 @@ export async function GET(request: Request) {
       break
     case 'openrouter':
       models = await fetchOpenRouterModels()
+      break
+    case 'cerebras':
+      models = await fetchCerebrasModels()
       break
     default:
       models = getModelsForProvider(provider as any)

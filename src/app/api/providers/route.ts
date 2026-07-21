@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { PROVIDER_INFO } from '@/lib/providers'
 
 const providers = [
   { id: 'claude', key: 'CLAUDE_API_KEY' },
@@ -11,9 +12,11 @@ const providers = [
 ]
 
 export async function GET() {
-  const result = providers.map(p => ({
-    id: p.id,
-    configured: !!(process.env[p.key] && process.env[p.key]!.trim() !== ''),
-  }))
+  const result = providers
+    .filter(p => PROVIDER_INFO[p.id as keyof typeof PROVIDER_INFO]?.enabled !== false)
+    .map(p => ({
+      id: p.id,
+      configured: !!(process.env[p.key] && process.env[p.key]!.trim() !== ''),
+    }))
   return NextResponse.json(result)
 }

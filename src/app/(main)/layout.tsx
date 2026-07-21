@@ -4,19 +4,46 @@ import { useEffect } from 'react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { useChatStore, useUIStore } from '@/lib/store'
+import { AnimatePresence, motion } from 'framer-motion'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const { sidebarOpen } = useChatStore()
+  const { sidebarOpen, setSidebarOpen } = useChatStore()
   const { theme } = useUIStore()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
+  // Close sidebar on Escape key
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sidebarOpen) setSidebarOpen(false)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [sidebarOpen])
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-0'}`}>
+
+      {/* Mobile overlay backdrop */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      <div
+        className="flex-1 flex flex-col transition-[margin] duration-200 ease-in-out"
+        style={{ marginLeft: sidebarOpen ? 288 : 0 }}>
         <Header />
         <main className="flex-1 overflow-hidden">
           {children}

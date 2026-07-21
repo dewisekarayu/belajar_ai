@@ -9,17 +9,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        pink: {
-          50: '#FFF9FC',
-          100: '#FFF4FA',
-          200: '#FFE4F2',
-          300: '#FFD2E8',
-          400: '#FFB5DC',
-          500: '#FFA4D4',
-          600: '#E890B8',
-          700: '#D47A9E',
-          800: '#B85F82',
-          900: '#9C4568',
+        accent: {
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
+          300: '#93C5FD',
+          400: '#60A5FA',
+          500: '#3B82F6',
+          600: '#2563EB',
+          700: '#1D4ED8',
+          800: '#1E40AF',
+          900: '#1E3A8A',
         },
         surface: 'var(--bg-surface)',
         background: 'var(--bg-primary)',
@@ -35,21 +35,24 @@ module.exports = {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        '2xl': '20px',
-        '3xl': '24px',
+        '2xl': '16px',
+        '3xl': '20px',
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(255, 181, 220, 0.15), 0 4px 6px -4px rgba(255, 181, 220, 0.1)',
-        'soft-lg': '0 10px 40px -10px rgba(255, 181, 220, 0.2)',
-        'glass': '0 8px 32px 0 rgba(255, 181, 220, 0.12)',
+        'soft': 'var(--shadow-soft)',
+        'soft-md': 'var(--shadow-md)',
+        'soft-lg': 'var(--shadow-lg)',
+        'soft-xl': 'var(--shadow-xl)',
+        'glass': '0 8px 32px 0 rgba(0,0,0,0.06)',
       },
-      // Dark mode shadows are handled via CSS custom properties in globals.css
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'slide-up': 'slideUp 0.4s ease-out',
-        'slide-in-right': 'slideInRight 0.3s ease-out',
+        'fade-in': 'fadeIn 0.25s ease-out',
+        'slide-up': 'slideUp 0.35s ease-out',
+        'slide-in-right': 'slideInRight 0.25s ease-out',
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
         'float': 'float 6s ease-in-out infinite',
+        'bounce-in': 'bounceIn 0.3s ease-out',
+        'scale-in': 'scaleIn 0.2s ease-out',
       },
       keyframes: {
         fadeIn: {
@@ -57,11 +60,11 @@ module.exports = {
           '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         slideInRight: {
-          '0%': { opacity: '0', transform: 'translateX(10px)' },
+          '0%': { opacity: '0', transform: 'translateX(8px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
         pulseSoft: {
@@ -71,6 +74,14 @@ module.exports = {
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-20px)' },
+        },
+        bounceIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.97)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
       },
     },

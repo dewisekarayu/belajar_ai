@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChatStore, useSettingsStore } from '@/lib/store'
-import { MessageSquare, Brain, Zap, Globe, Sparkles, Send } from 'lucide-react'
+import { MessageSquare, Brain, Zap, Globe, Sparkles, Send, Code, BookOpen, Lightbulb } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function EmptyState() {
   const { createSession, providerStatus } = useChatStore()
@@ -12,18 +13,24 @@ export function EmptyState() {
   const [input, setInput] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good morning'
+    if (hour < 18) return 'Good afternoon'
+    return 'Good evening'
+  }, [])
+
   const suggestions = [
-    { text: 'Jelaskan konsep AI', icon: Brain },
-    { text: 'Buat kode React', icon: Zap },
-    { text: 'Ringkas dokumen', icon: Sparkles },
-    { text: 'Buat roadmap belajar', icon: Globe },
+    { text: 'Explain a concept', icon: Brain, desc: 'Break down complex topics' },
+    { text: 'Write some code', icon: Code, desc: 'Generate code snippets' },
+    { text: 'Summarize a document', icon: BookOpen, desc: 'Condense long content' },
+    { text: 'Brainstorm ideas', icon: Lightbulb, desc: 'Creative thinking partner' },
   ]
 
   const handleCreateAndSend = async (message?: string) => {
     if (isCreating) return
     setIsCreating(true)
     try {
-      // Use default provider/model from settings, fallback to first enabled
       let provider = defaultProvider
       let model = defaultModel
       if (!providerStatus[provider]) {
@@ -35,7 +42,6 @@ export function EmptyState() {
       }
       const sessionId = await createSession(provider, model)
       if (sessionId && message) {
-        // Store pending message for ChatInput to pick up
         sessionStorage.setItem('pending-message-' + sessionId, message)
       }
       if (sessionId) {
@@ -57,46 +63,69 @@ export function EmptyState() {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8">
-      <div className="max-w-lg w-full text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-pink-400 to-pink-300 flex items-center justify-center shadow-soft-lg">
-          <MessageSquare className="w-10 h-10 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold text-text-primary mb-2">AI Chat</h2>
-        <p className="text-text-secondary mb-6">Halo! Ada yang bisa saya bantu hari ini?</p>
+    <div className="flex-1 flex flex-col items-center justify-center p-6">
+      <motion.div
+        className="max-w-xl w-full text-center"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+      >
+        {/* Logo */}
+        <motion.div
+          className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-accent-600 flex items-center justify-center shadow-soft-lg"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <MessageSquare className="w-8 h-8 text-white" />
+        </motion.div>
 
-        <form onSubmit={handleSubmit} className="relative mb-6">
+        {/* Greeting */}
+        <h2 className="text-2xl font-semibold text-text-primary mb-1.5">
+          {greeting}!
+        </h2>
+        <p className="text-text-secondary text-sm mb-8">
+          How can I help you today?
+        </p>
+
+        {/* Center input */}
+        <form onSubmit={handleSubmit} className="relative mb-8">
           <input
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Ketik pesan..."
+            placeholder="Ask me anything..."
             disabled={isCreating}
-            className="w-full bg-white dark:bg-gray-800 border border-border rounded-2xl pl-4 pr-12 py-3.5 text-sm outline-none focus:border-pink-400 transition-all duration-200 shadow-soft placeholder:text-text-secondary/50 disabled:opacity-50"
+            className="w-full bg-surface border border-border rounded-2xl pl-5 pr-14 py-4 text-sm outline-none focus:border-accent-500 transition-all duration-200 shadow-soft placeholder:text-text-secondary/40 disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={!input.trim() || isCreating}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-r from-pink-400 to-pink-300 text-white rounded-xl hover:from-pink-500 hover:to-pink-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-accent-600 text-white rounded-xl hover:bg-accent-700 transition-all disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
           >
             <Send className="w-4 h-4" />
           </button>
         </form>
 
+        {/* Suggestion cards */}
         <div className="grid grid-cols-2 gap-3">
           {suggestions.map((s, i) => (
-            <button
+            <motion.button
               key={i}
               onClick={() => handleCreateAndSend(s.text)}
               disabled={isCreating}
-              className="p-4 bg-surface border border-border rounded-2xl text-left hover:shadow-soft hover:border-pink-400/30 transition-all duration-200 disabled:opacity-50"
+              className="group p-4 bg-surface border border-border rounded-2xl text-left hover:border-accent-300 dark:hover:border-accent-700 hover:shadow-soft transition-all duration-200 disabled:opacity-50"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 + i * 0.05 }}
             >
-              <s.icon className="w-5 h-5 text-pink-400 mb-2" />
+              <s.icon className="w-5 h-5 text-accent-500 mb-2 group-hover:text-accent-600 transition-colors" />
               <h3 className="text-sm font-medium text-text-primary">{s.text}</h3>
-            </button>
+              <p className="text-xs text-text-secondary mt-0.5">{s.desc}</p>
+            </motion.button>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

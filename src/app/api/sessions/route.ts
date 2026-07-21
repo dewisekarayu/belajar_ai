@@ -35,3 +35,13 @@ export async function POST(request: Request) {
 
   return NextResponse.json(session, { status: 201 })
 }
+
+export async function DELETE(request: Request) {
+  const userId = getUser(request)
+  if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+
+  await prisma.chatMessage.deleteMany({ where: { session: { userId } } })
+  await prisma.chatSession.deleteMany({ where: { userId } })
+
+  return NextResponse.json({ message: 'All sessions deleted' })
+}

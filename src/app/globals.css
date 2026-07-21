@@ -5,35 +5,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --pink-primary: #FFB5DC;
-  --pink-hover: #FFA4D4;
-  --pink-secondary: #FFD2E8;
-  --pink-accent: #FFE4F2;
-  --bg-primary: #FFF9FC;
-  --bg-sidebar: #FFF4FA;
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
+  --accent-light: #3B82F6;
+  --accent-subtle: #EFF6FF;
+  --bg-primary: #F8F9FB;
+  --bg-sidebar: #F0F1F3;
   --bg-surface: #FFFFFF;
-  --border-color: #F8D3E7;
-  --text-primary: #2F2F35;
+  --border-color: #E5E7EB;
+  --text-primary: #0B0C0E;
   --text-secondary: #6B7280;
-  --color-success: #A7E8C5;
-  --color-warning: #FAD7A0;
-  --color-error: #F6A6B2;
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.08);
 }
 
 .dark {
-  --pink-primary: #E88DB8;
-  --pink-hover: #D47AA8;
-  --pink-secondary: #C06A98;
-  --pink-accent: #AC5A88;
-  --bg-primary: #0F0F12;
-  --bg-sidebar: #141418;
-  --bg-surface: #1C1C22;
-  --border-color: #2A2A32;
-  --text-primary: #F0F0F4;
-  --text-secondary: #8E8E9A;
-  --color-success: #5EC490;
-  --color-warning: #D4A86A;
-  --color-error: #E06070;
+  --accent: #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-light: #60A5FA;
+  --accent-subtle: rgba(59, 130, 246, 0.08);
+  --bg-primary: #08090B;
+  --bg-sidebar: #0E0F11;
+  --bg-surface: #151618;
+  --border-color: #27282B;
+  --text-primary: #F5F5F5;
+  --text-secondary: #8B8D91;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --glass-bg: rgba(21, 22, 24, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -54,10 +66,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* Scrollbar */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -65,64 +85,61 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--pink-secondary);
-  border-radius: 3px;
+  background: #D1D5DB;
+  border-radius: 10px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #3A3A44;
+  background: #3F4045;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--pink-primary);
+  background: #9CA3AF;
 }
 
-/* Glass effect utility */
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #525358;
+}
+
+/* Premium glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(248, 211, 231, 0.3);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
 }
 
-.dark .glass {
-  background: rgba(28, 28, 34, 0.85);
-  border: 1px solid rgba(42, 42, 50, 0.5);
-}
-
-/* Gradient background */
+/* Gradient background utility */
 .gradient-bg {
-  background: linear-gradient(135deg, #FFF9FC 0%, #FFEAF5 100%);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-sidebar) 100%);
 }
 
 .dark .gradient-bg {
-  background: linear-gradient(135deg, #0F0F12 0%, #141418 100%);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-sidebar) 100%);
 }
 
-/* Mesh gradient for landing */
+/* Enhanced mesh gradient for landing/auth pages */
 .mesh-gradient {
   background:
-    radial-gradient(at 40% 20%, rgba(255, 181, 220, 0.3) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(255, 210, 232, 0.2) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(255, 228, 242, 0.3) 0px, transparent 50%),
-    radial-gradient(at 80% 50%, rgba(255, 181, 220, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(255, 210, 232, 0.2) 0px, transparent 50%),
-    radial-gradient(at 80% 100%, rgba(255, 228, 242, 0.1) 0px, transparent 50%);
+    radial-gradient(at 30% 20%, rgba(37, 99, 235, 0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 10%, rgba(59, 130, 246, 0.03) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 50%, rgba(59, 130, 246, 0.03) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(37, 99, 235, 0.04) 0px, transparent 50%);
 }
 
 .dark .mesh-gradient {
   background:
-    radial-gradient(at 40% 20%, rgba(232, 141, 184, 0.08) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(212, 122, 168, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(192, 106, 152, 0.06) 0px, transparent 50%),
-    radial-gradient(at 80% 50%, rgba(232, 141, 184, 0.03) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(212, 122, 168, 0.05) 0px, transparent 50%),
-    radial-gradient(at 80% 100%, rgba(192, 106, 152, 0.03) 0px, transparent 50%);
+    radial-gradient(at 30% 20%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
+    radial-gradient(at 80% 10%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 50%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.04) 0px, transparent 50%);
 }
 
 /* Markdown styles */
 .markdown-body pre {
-  background: #1E1E2E;
+  background: #1A1B26;
   border-radius: 12px;
   padding: 16px;
   overflow-x: auto;
@@ -135,14 +152,15 @@ body {
 }
 
 .markdown-body p code {
-  background: rgba(255, 181, 220, 0.15);
+  background: rgba(37, 99, 235, 0.08);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.85em;
+  color: var(--accent);
 }
 
 .dark .markdown-body p code {
-  background: rgba(232, 141, 184, 0.12);
+  background: rgba(59, 130, 246, 0.12);
 }
 
 .markdown-body h1, .markdown-body h2, .markdown-body h3,
@@ -157,7 +175,7 @@ body {
 }
 
 .markdown-body blockquote {
-  border-left: 3px solid var(--pink-primary);
+  border-left: 3px solid var(--accent);
   padding-left: 12px;
   margin: 12px 0;
   color: var(--text-secondary);
@@ -189,31 +207,39 @@ body {
 .typing-cursor::after {
   content: '|';
   animation: blink 1s step-end infinite;
-  color: var(--pink-primary);
+  color: var(--accent);
 }
 
-/* Skeleton loading */
+/* Enhanced skeleton loading */
 .skeleton {
-  background: linear-gradient(90deg, var(--border-color) 25%, rgba(255, 210, 232, 0.3) 50%, var(--border-color) 75%);
+  background: linear-gradient(90deg, var(--border-color) 25%, rgba(0, 0, 0, 0.04) 50%, var(--border-color) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
 }
 
 .dark .skeleton {
-  background: linear-gradient(90deg, var(--border-color) 25%, rgba(58, 58, 68, 0.5) 50%, var(--border-color) 75%);
+  background: linear-gradient(90deg, var(--border-color) 25%, rgba(255, 255, 255, 0.04) 50%, var(--border-color) 75%);
   background-size: 200% 100%;
-}
-
-/* Dark mode shadow overrides */
-.dark .shadow-soft {
-  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
-}
-
-.dark .shadow-soft-lg {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes skeleton-loading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* Card hover lift effect */
+.card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Input focus ring utility */
+.input-focus {
+  @apply outline-none transition-all duration-150;
+}
+.input-focus:focus {
+  @apply border-accent-500 ring-2 ring-accent-500/10;
 }

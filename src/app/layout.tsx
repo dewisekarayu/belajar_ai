@@ -5,7 +5,7 @@ import ThemeProvider from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'AI Chat Premium',
-  description: 'Premium AI Chat with Pink Pastel Theme',
+  description: 'Premium multi-provider AI Chat application with a modern, elegant interface.',
 }
 
 export default function RootLayout({

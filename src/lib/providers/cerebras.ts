@@ -2,10 +2,9 @@ import type { ChatMessage, AIModel } from '@/lib/types'
 import { BaseAIProvider, type ProviderResponse, type StreamCallback, type ChatOptions } from './base'
 
 const CEREBRAS_MODELS: AIModel[] = [
-  { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.6, outputPrice: 0.6, supportsStreaming: true, supportsImages: false },
-  { id: 'llama-3.1-8b', name: 'Llama 3.1 8B', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.1, outputPrice: 0.1, supportsStreaming: true, supportsImages: false },
-  { id: 'llama-3.2-3b', name: 'Llama 3.2 3B', provider: 'cerebras', maxTokens: 8192, contextWindow: 8192, inputPrice: 0.05, outputPrice: 0.05, supportsStreaming: true, supportsImages: false },
-  { id: 'llama-3.2-1b', name: 'Llama 3.2 1B', provider: 'cerebras', maxTokens: 8192, contextWindow: 8192, inputPrice: 0.02, outputPrice: 0.02, supportsStreaming: true, supportsImages: false },
+  { id: 'gpt-oss-120b', name: 'GPT-OSS 120B', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
+  { id: 'zai-glm-4.7', name: 'GLM-4.7', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
+  { id: 'gemma-4-31b', name: 'Gemma 4 31B', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
 ]
 
 export class CerebrasProvider extends BaseAIProvider {

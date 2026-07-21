@@ -3,19 +3,37 @@
 import { useChatStore, useSettingsStore, useUIStore } from '@/lib/store'
 import { PROVIDER_INFO, getModelsForProvider } from '@/lib/providers'
 import type { AIModel } from '@/lib/types'
-import { Menu, Moon, Sun, ChevronDown, RefreshCw, AlertCircle } from 'lucide-react'
+import { Menu, Moon, Sun, ChevronDown, RefreshCw, AlertCircle, User, Settings, LogOut, Sparkles } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
 
 export function Header() {
   const { activeSessionId, sidebarOpen, setSidebarOpen, sessions, providerStatus } = useChatStore()
   const { defaultProvider, defaultModel, updateSettings } = useSettingsStore()
   const { theme, setTheme } = useUIStore()
   const [showModelDropdown, setShowModelDropdown] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const [selectedProvider, setSelectedProvider] = useState(defaultProvider)
   const [models, setModels] = useState<AIModel[]>([])
   const [loadingModels, setLoadingModels] = useState(false)
   const [modelError, setModelError] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  const [userName, setUserName] = useState('')
+  const [userEmail, setUserEmail] = useState('')
+
+  useEffect(() => {
+    const user = localStorage.getItem('user')
+    if (user) {
+      try {
+        const parsed = JSON.parse(user)
+        setUserName(parsed.name || '')
+        setUserEmail(parsed.email || '')
+      } catch {}
+    }
+  }, [])
 
   const session = sessions.find(s => s.id === activeSessionId)
   const activeProvider = session?.provider || defaultProvider
@@ -31,7 +49,7 @@ export function Header() {
       const data = await res.json()
       setModels(data)
     } catch {
-      setModelError('Gagal memuat daftar model')
+      setModelError('Failed to load models')
       setModels(getModelsForProvider(providerId as any))
     } finally {
       setLoadingModels(false)
@@ -39,14 +57,13 @@ export function Header() {
   }, [])
 
   useEffect(() => {
-    if (showModelDropdown) {
-      loadModels(selectedProvider)
-    }
+    if (showModelDropdown) loadModels(selectedProvider)
   }, [showModelDropdown, selectedProvider, loadModels])
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setShowModelDropdown(false)
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setShowUserMenu(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -54,8 +71,6 @@ export function Header() {
 
   const handleSelectModel = async (providerId: string, modelId: string) => {
     updateSettings({ defaultProvider: providerId, defaultModel: modelId })
-
-    // Also update the active session's provider/model if there is one
     if (session) {
       try {
         await fetch(`/api/sessions/${session.id}`, {
@@ -66,104 +81,162 @@ export function Header() {
         useChatStore.setState(state => ({
           sessions: state.sessions.map(s => s.id === session.id ? { ...s, provider: providerId, model: modelId } : s),
         }))
-      } catch {
-        // Silently fail - settings are already updated
-      }
+      } catch {}
     }
     setShowModelDropdown(false)
   }
 
-  const enabledProviders = Object.entries(PROVIDER_INFO).filter(([key]) => providerStatus[key] !== false)
+  const allProviders = Object.entries(PROVIDER_INFO).filter(([_, info]) => info.enabled !== false)
 
   return (
-    <header className="h-14 border-b border-border bg-surface/80 backdrop-blur-sm flex items-center justify-between px-4 sticky top-0 z-30">
+    <header className="h-14 border-b border-border bg-surface/80 backdrop-blur-lg flex items-center justify-between px-4 sticky top-0 z-30">
       <div className="flex items-center gap-3">
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-pink-400/10 rounded-xl transition-colors">
-            <Menu className="w-5 h-5" />
+          <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-xl transition-colors">
+            <Menu className="w-5 h-5 text-text-secondary" />
           </button>
         )}
-        <div>
-          <h1 className="text-sm font-semibold text-text-primary">{session?.title || 'AI Chat Premium'}</h1>
-          <p className="text-xs text-text-secondary">
-            {providerInfo?.name || activeProvider} · {activeModel?.split('/').pop()?.replace(/-/g, ' ')}
+        <div className="min-w-0">
+          <h1 className="text-sm font-semibold text-text-primary truncate flex items-center gap-2">
+            {session?.title || 'AI Chat Premium'}
+            {session && <Sparkles className="w-3 h-3 text-accent-500/60 hidden sm:inline" />}
+          </h1>
+          <p className="text-xs text-text-secondary flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full shadow-sm" style={{ backgroundColor: providerInfo?.color || '#71717A' }} />
+            {providerInfo?.name || activeProvider}
+            <span className="text-text-secondary/30">·</span>
+            <span className="text-text-secondary/80">{activeModel?.split('/').pop()?.replace(/-/g, ' ')}</span>
             {providerStatus[activeProvider] === false && (
-              <span className="ml-2 text-warning text-xs font-medium">Not Configured</span>
+              <span className="ml-1 px-1.5 py-0.5 bg-warning/10 text-warning text-[10px] font-medium rounded-md">Not Configured</span>
             )}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        {/* Model Selector */}
         <div className="relative" ref={dropdownRef}>
           <button onClick={() => setShowModelDropdown(!showModelDropdown)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-pink-400/10 rounded-xl text-sm font-medium text-text-primary hover:bg-pink-400/15 transition-colors">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: providerInfo?.color }} />
-            {activeModel?.split('/').pop()?.replace(/-/g, ' ')}
-            <ChevronDown className="w-3.5 h-3.5" />
+            className="flex items-center gap-2 px-3 py-1.5 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.07] rounded-xl text-sm font-medium text-text-primary transition-all">
+            <span className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: providerInfo?.color || '#71717A' }} />
+            <span className="hidden sm:inline text-[13px]">{activeModel?.split('/').pop()?.replace(/-/g, ' ') || 'Select Model'}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-text-secondary/60" />
           </button>
 
-          {showModelDropdown && (
-            <div className="absolute right-0 top-full mt-2 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-soft-lg border border-border z-50 overflow-hidden">
-              <div className="flex border-b border-border">
-                {enabledProviders.map(([key, info]) => (
-                  <button key={key}
-                    onClick={() => setSelectedProvider(key)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium transition-colors ${
-                      selectedProvider === key
-                        ? 'text-pink-500 border-b-2 border-pink-400 bg-pink-400/5'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-pink-400/5'
-                    }`}>
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: info.color }} />
-                    {info.name}
-                  </button>
-                ))}
-              </div>
+          <AnimatePresence>
+            {showModelDropdown && (
+              <motion.div
+                initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                transition={{ duration: 0.12 }}
+                className="absolute right-0 top-full mt-2 w-[440px] bg-surface glass rounded-2xl shadow-soft-lg z-50 overflow-hidden">
+                {/* Provider Tabs */}
+                <div className="flex overflow-x-auto gap-0.5 p-2 border-b border-border scrollbar-none">
+                  {allProviders.map(([key, info]) => (
+                    <button key={key}
+                      onClick={() => setSelectedProvider(key)}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                        selectedProvider === key
+                          ? 'bg-accent-500/10 text-accent-600 dark:text-accent-400 shadow-sm'
+                          : 'text-text-secondary hover:text-text-primary hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+                      } ${providerStatus[key] === false ? 'opacity-40' : ''}`}>
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: info.color }} />
+                      {info.name}
+                      {providerStatus[key] === false && <span className="text-[10px] text-text-secondary">⚠</span>}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="max-h-72 overflow-y-auto p-1">
-                {loadingModels ? (
-                  <div className="flex items-center justify-center py-8 gap-2 text-text-secondary">
-                    <RefreshCw className="w-4 h-4 animate-spin" /> Memuat model...
-                  </div>
-                ) : modelError ? (
-                  <div className="flex flex-col items-center justify-center py-8 gap-2">
-                    <AlertCircle className="w-5 h-5 text-error" />
-                    <p className="text-sm text-text-secondary">{modelError}</p>
-                    <button onClick={() => loadModels(selectedProvider)}
-                      className="text-xs text-pink-400 hover:text-pink-500 font-medium flex items-center gap-1">
-                      <RefreshCw className="w-3 h-3" /> Muat Ulang
-                    </button>
-                  </div>
-                ) : models.length === 0 ? (
-                  <p className="text-center text-sm text-text-secondary py-8">Tidak ada model tersedia</p>
-                ) : (
-                  models.map(m => (
-                    <button key={m.id}
-                      onClick={() => handleSelectModel(selectedProvider, m.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-colors ${
-                        activeModel === m.id && activeProvider === selectedProvider
-                          ? 'bg-pink-400/10 text-text-primary font-medium'
-                          : 'hover:bg-pink-400/5 text-text-secondary'
-                      }`}>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: PROVIDER_INFO[selectedProvider as keyof typeof PROVIDER_INFO]?.color }} />
-                        <span>{m.name}</span>
-                      </div>
-                      <span className="text-xs opacity-40">
-                        {m.contextWindow >= 1000000 ? `${m.contextWindow / 1000000}M` : `${m.contextWindow / 1000}K`} ctx
-                      </span>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+                {/* Model List */}
+                <div className="max-h-72 overflow-y-auto p-1.5">
+                  {loadingModels ? (
+                    <div className="flex items-center justify-center py-8 gap-2 text-text-secondary">
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Loading models...
+                    </div>
+                  ) : modelError ? (
+                    <div className="flex flex-col items-center justify-center py-8 gap-2">
+                      <AlertCircle className="w-5 h-5 text-error" />
+                      <p className="text-sm text-text-secondary">{modelError}</p>
+                      <button onClick={() => loadModels(selectedProvider)}
+                        className="text-xs text-accent-500 hover:text-accent-600 font-medium flex items-center gap-1 transition-colors">
+                        <RefreshCw className="w-3 h-3" /> Retry
+                      </button>
+                    </div>
+                  ) : models.length === 0 ? (
+                    <p className="text-center text-sm text-text-secondary py-8">No models available</p>
+                  ) : (
+                    models.map(m => (
+                      <button key={m.id}
+                        onClick={() => handleSelectModel(selectedProvider, m.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all ${
+                          activeModel === m.id && activeProvider === selectedProvider
+                            ? 'bg-accent-500/10 text-accent-600 dark:text-accent-400 font-medium'
+                            : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-text-secondary hover:text-text-primary'
+                        }`}>
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: PROVIDER_INFO[selectedProvider as keyof typeof PROVIDER_INFO]?.color }} />
+                          <span>{m.name}</span>
+                        </div>
+                        <span className="text-xs text-text-secondary/50">
+                          {m.contextWindow >= 1000000 ? `${m.contextWindow / 1000000}M` : `${m.contextWindow / 1000}K`} ctx
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
+        {/* Theme Toggle */}
         <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-          className="p-2 hover:bg-pink-400/10 rounded-xl transition-colors">
-          {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          className="p-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-xl transition-colors">
+          {theme === 'light' ? <Moon className="w-4 h-4 text-text-secondary" /> : <Sun className="w-4 h-4 text-text-secondary" />}
         </button>
+
+        {/* User Menu */}
+        <div className="relative" ref={userMenuRef}>
+          <button onClick={() => setShowUserMenu(!showUserMenu)}
+            className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white text-xs font-bold hover:shadow-md transition-all ml-1">
+            {userName ? userName[0].toUpperCase() : 'U'}
+          </button>
+          <AnimatePresence>
+            {showUserMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                transition={{ duration: 0.12 }}
+                className="absolute right-0 top-full mt-2 w-56 bg-surface glass rounded-2xl shadow-soft-lg z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-border">
+                  <p className="text-sm font-semibold text-text-primary truncate">{userName || 'User'}</p>
+                  <p className="text-xs text-text-secondary truncate mt-0.5">{userEmail}</p>
+                </div>
+                <div className="p-1.5">
+                  <Link href="/profile" onClick={() => setShowUserMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
+                    <User className="w-4 h-4" /> Profile
+                  </Link>
+                  <Link href="/settings" onClick={() => setShowUserMenu(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
+                    <Settings className="w-4 h-4" /> Settings
+                  </Link>
+                  <div className="my-1 border-t border-border" />
+                  <button onClick={async () => {
+                    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+                    localStorage.clear()
+                    window.location.href = '/login'
+                  }}
+                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-error hover:bg-error/10 rounded-xl transition-colors">
+                    <LogOut className="w-4 h-4" /> Logout
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </header>
   )

@@ -1,10 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useChatStore } from '@/lib/store'
 import { PROVIDER_INFO } from '@/lib/providers'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
-import { MessageSquare, Cpu, Activity, DollarSign } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { MessageSquare, Cpu, Activity, TrendingUp, Sparkles } from 'lucide-react'
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.07 } },
+}
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+}
 
 export default function DashboardPage() {
   const { sessions } = useChatStore()
@@ -35,70 +45,97 @@ export default function DashboardPage() {
     color: PROVIDER_INFO[provider as keyof typeof PROVIDER_INFO]?.color || '#ccc',
   }))
 
-  const weeklyData = Array.from({ length: 7 }, (_, i) => {
+  const weeklyData = useMemo(() => Array.from({ length: 7 }, (_, i) => {
     const date = new Date()
     date.setDate(date.getDate() - (6 - i))
     return { date: date.toLocaleDateString('en', { weekday: 'short' }), chats: Math.floor(Math.random() * 10) }
-  })
+  }), [])
 
   const stats = [
-    { label: 'Total Chats', value: totalChats, icon: MessageSquare, color: 'from-pink-400 to-pink-300' },
-    { label: 'Messages', value: totalMessages, icon: Activity, color: 'from-pink-300 to-pink-200' },
-    { label: 'Providers Active', value: configuredProviders, icon: Cpu, color: 'from-pink-400 to-pink-300' },
-    { label: 'Sessions', value: totalChats, icon: DollarSign, color: 'from-pink-300 to-pink-200' },
+    { label: 'Total Chats', value: totalChats, icon: MessageSquare, gradient: 'from-accent-500 to-accent-600' },
+    { label: 'Messages', value: totalMessages, icon: Activity, gradient: 'from-accent-400 to-accent-500' },
+    { label: 'Providers Active', value: configuredProviders, icon: Cpu, gradient: 'from-accent-500 to-accent-600' },
+    { label: 'Avg. Messages/Chat', value: totalChats > 0 ? Math.round(totalMessages / totalChats) : 0, icon: TrendingUp, gradient: 'from-accent-400 to-accent-500' },
   ]
 
   return (
-    <div className="p-6 overflow-y-auto h-full">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-text-primary mb-6">Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="relative p-6 overflow-y-auto h-full">
+      <div aria-hidden className="pointer-events-none fixed top-0 right-0 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl -z-10" />
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="max-w-6xl mx-auto"
+      >
+        <motion.div variants={itemVariants} className="mb-8">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Dashboard</h1>
+          <p className="text-sm text-text-secondary mt-1">Your AI usage overview and statistics</p>
+        </motion.div>
+
+        {/* Stats grid */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, i) => (
-            <div key={i} className="p-5 bg-surface border border-border rounded-2xl hover:shadow-soft transition-shadow">
+            <motion.div
+              key={i}
+              whileHover={{ y: -3 }}
+              transition={{ duration: 0.2 }}
+              className="group relative p-5 rounded-2xl glass shadow-soft hover:shadow-soft-lg hover:border-accent-500/20 transition-all border border-border"
+            >
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-soft group-hover:scale-105 transition-transform`}>
                   <stat.icon className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="text-xs text-text-secondary">{stat.label}</p>
-                  <p className="text-xl font-bold text-text-primary">{stat.value}</p>
+                  <p className="text-xl font-bold text-text-primary tabular-nums">{stat.value}</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="p-6 bg-surface border border-border rounded-2xl">
-            <h3 className="text-sm font-semibold text-text-primary mb-4">Weekly Activity</h3>
+        {/* Charts */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="p-6 rounded-2xl glass shadow-soft border border-border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-text-primary">Weekly Activity</h3>
+              <TrendingUp className="w-4 h-4 text-accent-500" />
+            </div>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F8D3E7" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #F8D3E7' }} />
-                <Bar dataKey="chats" fill="#FFB5DC" radius={[6, 6, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: 'var(--accent)', opacity: 0.06 }}
+                  contentStyle={{ borderRadius: 14, border: '1px solid var(--border-color)', background: 'var(--bg-surface)', backdropFilter: 'blur(16px)' }}
+                />
+                <Bar dataKey="chats" fill="var(--accent)" radius={[6, 6, 0, 0]} maxBarSize={36} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="p-6 bg-surface border border-border rounded-2xl">
+          <div className="p-6 rounded-2xl glass shadow-soft border border-border">
             <h3 className="text-sm font-semibold text-text-primary mb-4">Provider Usage</h3>
             {providerData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie data={providerData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3} dataKey="value">
-                    {providerData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    {providerData.map((entry, i) => <Cell key={i} fill={entry.color} stroke="none" />)}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #F8D3E7' }} />
+                  <Tooltip contentStyle={{ borderRadius: 14, border: '1px solid var(--border-color)', background: 'var(--bg-surface)', backdropFilter: 'blur(16px)' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[250px] text-text-secondary text-sm">Mulai chat untuk melihat statistik</div>
+              <div className="flex flex-col items-center justify-center h-[250px] text-text-secondary text-sm gap-3">
+                <Sparkles className="w-8 h-8 opacity-30" />
+                <span>Start chatting to see statistics</span>
+              </div>
             )}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }

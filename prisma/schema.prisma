@@ -29,6 +29,8 @@ model ChatSession {
   provider  String
   model     String
   title     String   @default("New Chat")
+  pinned    Boolean  @default(false)
+  favorite  Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
