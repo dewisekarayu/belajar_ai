@@ -12,15 +12,11 @@ const providers = [
 ]
 
 export async function GET() {
-  // Jika menggunakan local proxy (9Router), semua provider dianggap terkonfigurasi
-  const isLocalProxy = process.env.OPENAI_BASE_URL?.includes('localhost') ||
-    process.env.OPENAI_BASE_URL?.includes('127.0.0.1')
-
   const result = providers
     .filter(p => PROVIDER_INFO[p.id as keyof typeof PROVIDER_INFO]?.enabled !== false)
     .map(p => ({
       id: p.id,
-      configured: isLocalProxy || !!(process.env[p.key] && process.env[p.key]!.trim() !== ''),
+      configured: true, // Always configured since 9Router acts as the unified gateway for all providers
     }))
   return NextResponse.json(result)
 }

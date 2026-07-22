@@ -225,7 +225,7 @@ export function Sidebar() {
           animate={{ width: 288, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
-          className="fixed left-0 top-0 h-full bg-sidebar border-r border-border z-40 flex flex-col overflow-hidden">
+          className="fixed md:relative left-0 top-0 h-full bg-sidebar border-r border-border z-40 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 h-14 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-2.5">

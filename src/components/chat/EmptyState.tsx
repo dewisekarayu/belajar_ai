@@ -31,6 +31,9 @@ export function EmptyState() {
     if (isCreating) return
     setIsCreating(true)
     try {
+      if (message) {
+        sessionStorage.setItem('pending-message', message)
+      }
       let provider = defaultProvider
       let model = defaultModel
       if (!providerStatus[provider]) {
@@ -41,9 +44,6 @@ export function EmptyState() {
         model = models[0]?.id || defaultModel
       }
       const sessionId = await createSession(provider, model)
-      if (sessionId && message) {
-        sessionStorage.setItem('pending-message-' + sessionId, message)
-      }
       if (sessionId) {
         router.push('/chat')
       }

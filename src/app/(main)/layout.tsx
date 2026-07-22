@@ -41,9 +41,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         )}
       </AnimatePresence>
 
-      <div
-        className="flex-1 flex flex-col transition-[margin] duration-200 ease-in-out"
-        style={{ marginLeft: sidebarOpen ? 288 : 0 }}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
         <main className="flex-1 overflow-hidden">
           {children}

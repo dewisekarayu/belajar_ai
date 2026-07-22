@@ -33,6 +33,73 @@ function mapModel(model: string): string {
   return mapping[model] || model
 }
 
+function parseMultimodalContent(content: string): any {
+  if (typeof content !== 'string') return content
+
+  // 1. Check if it's a JSON stringified attachment object
+  if (content.startsWith('{') && content.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(content)
+      if (parsed.text !== undefined && Array.isArray(parsed.attachments)) {
+        const parts: any[] = []
+        
+        // Add text prompt
+        if (parsed.text) {
+          parts.push({ type: 'text', text: parsed.text })
+        }
+        
+        // Add attachments
+        for (const att of parsed.attachments) {
+          if (att.type.startsWith('image/') && att.content) {
+            parts.push({
+              type: 'image_url',
+              image_url: { url: att.content }
+            })
+          } else if (att.content) {
+            parts.push({
+              type: 'text',
+              text: `[Attached Document: ${att.name}]\n\`\`\`\n${att.content}\n\`\`\``
+            })
+          }
+        }
+        
+        return parts.length === 1 && parts[0].type === 'text' ? parts[0].text : parts
+      }
+    } catch (e) {
+      // Fallback to text parsing if JSON parse fails
+    }
+  }
+
+  // 2. Fallback to parsing markdown image base64 format (for backward compatibility)
+  const regex = /!\[([^\]]*)\]\((data:image\/[^;]+;base64,[^)]+)\)/g
+  const parts: any[] = []
+  let lastIndex = 0
+  let match
+
+  while ((match = regex.exec(content)) !== null) {
+    const textBefore = content.substring(lastIndex, match.index).trim()
+    if (textBefore) {
+      parts.push({ type: 'text', text: textBefore })
+    }
+    
+    parts.push({
+      type: 'image_url',
+      image_url: { url: match[2] }
+    })
+    
+    lastIndex = regex.lastIndex
+  }
+
+  const textAfter = content.substring(lastIndex).trim()
+  if (textAfter) {
+    parts.push({ type: 'text', text: textAfter })
+  }
+
+  if (parts.length === 0) return content
+  if (parts.every(p => p.type === 'text')) return content
+  return parts
+}
+
 async function chatWith9Router(
   messages: ChatMessage[],
   model: string,
@@ -42,10 +109,14 @@ async function chatWith9Router(
   const baseURL = process.env.OPENAI_BASE_URL || 'http://127.0.0.1:20128/v1'
   const apiKey = process.env.OPENAI_API_KEY?.trim()
 
-  const sys = options.systemPrompt || DEFAULT_SYSTEM_PROMPT
+  const imageGenInstructions = "\n\nImage Generation Capabilities: You can generate images when asked. If the user asks you to generate, create, draw, or visualize an image, you must output a markdown image tag inline. Format: `![Description](https://image.pollinations.ai/prompt/encoded_prompt?width=1024&height=1024&nologo=true)`. Replace `encoded_prompt` with a detailed, creative English prompt describing the image (URL-encoded, e.g. space becomes %20). Do not write raw HTML, only use standard markdown image tag. You can write a short explanation of the image in Indonesian before or after the image tag, but keep the prompt inside the URL in English for better results."
+  const sys = (options.systemPrompt || DEFAULT_SYSTEM_PROMPT) + imageGenInstructions
   const formattedMessages = [
     { role: 'system', content: sys },
-    ...messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
+    ...messages.filter(m => m.role !== 'system').map(m => ({
+      role: m.role,
+      content: m.role === 'user' ? parseMultimodalContent(m.content) : m.content
+    })),
   ]
 
   const mappedModel = mapModel(model)
@@ -93,6 +164,68 @@ async function chatWith9Router(
   }
 }
 
+function extractContent(parsed: any): string | null {
+  if (!parsed) return null
+  if (parsed.choices?.[0]?.delta?.content !== undefined) {
+    return parsed.choices[0].delta.content
+  }
+  if (parsed.data?.choices?.[0]?.delta?.content !== undefined) {
+    return parsed.data.choices[0].delta.content
+  }
+  if (parsed.choices?.[0]?.text !== undefined) {
+    return parsed.choices[0].text
+  }
+  return null
+}
+
+async function* makeTransformedStream(rawStream: ReadableStream) {
+  const reader = rawStream.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed) continue
+
+        if (trimmed.startsWith('data: ')) {
+          const dataStr = trimmed.slice(6).trim()
+          if (dataStr === '[DONE]') {
+            yield `data: [DONE]\n\n`
+            break
+          }
+
+          try {
+            const parsed = JSON.parse(dataStr)
+            if (parsed.error) {
+              yield `data: ${JSON.stringify({ type: 'error', message: parsed.error.message || 'API Error' })}\n\n`
+              continue
+            }
+            const content = extractContent(parsed)
+            if (content) {
+              yield `data: ${JSON.stringify({ type: 'text', content })}\n\n`
+            }
+          } catch (e) {
+            // Ignore parse errors for incomplete JSON lines
+          }
+        }
+      }
+    }
+  } catch (error: any) {
+    yield `data: ${JSON.stringify({ type: 'error', message: error?.message || 'Stream error' })}\n\n`
+  } finally {
+    reader.releaseLock()
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { model, messages, stream, options } = await request.json()
@@ -108,7 +241,22 @@ export async function POST(request: Request) {
     )
 
     if (stream && result.streamBody) {
-      return new Response(result.streamBody, {
+      const encoder = new TextEncoder()
+      const customStream = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of makeTransformedStream(result.streamBody)) {
+              controller.enqueue(encoder.encode(chunk))
+            }
+          } catch (e: any) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message: e?.message || 'Stream failed' })}\n\n`))
+          } finally {
+            controller.close()
+          }
+        }
+      })
+
+      return new Response(customStream, {
         headers: {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',

@@ -9,7 +9,7 @@ import { notifyError } from '@/components/notification/Toast'
 export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFocus?: boolean }) {
   const [input, setInput] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [attachments, setAttachments] = useState<{ name: string; type: string; size: number }[]>([])
+  const [attachments, setAttachments] = useState<File[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const handleSendRef = useRef<() => void>(() => {})
@@ -21,11 +21,12 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
     if (autoFocus && textareaRef.current) {
       textareaRef.current.focus()
     }
-    const pending = sessionStorage.getItem('pending-message-' + sessionId)
+    const pending = sessionStorage.getItem('pending-message')
     if (pending) {
-      sessionStorage.removeItem('pending-message-' + sessionId)
-      setInput(pending)
+      sessionStorage.removeItem('pending-message')
+      handleSend(pending)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, autoFocus])
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
   }, [isGenerating])
 
   const onDrop = useCallback((files: File[]) => {
-    setAttachments(prev => [...prev, ...files.map(f => ({ name: f.name, type: f.type, size: f.size }))])
+    setAttachments(prev => [...prev, ...files])
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -81,26 +82,123 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
   const handleSend = async (overrideText?: string) => {
     const textToUse = overrideText || input
     if (!textToUse.trim() && attachments.length === 0) return
-    const session = sessions.find(s => s.id === sessionId)
+    const session = useChatStore.getState().sessions.find(s => s.id === sessionId)
     if (!session) return
 
-    const userContent = textToUse.trim()
+    setIsGenerating(true)
+
+    // Helper functions to read files
+    const readFileAsText = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = () => reject(reader.error)
+        reader.readAsText(file)
+      })
+    }
+
+    const readFileAsDataURL = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = () => reject(reader.error)
+        reader.readAsDataURL(file)
+      })
+    }
+
+    const loadPdfJS = (): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        if ((window as any)['pdfjs-dist/build/pdf']) {
+          resolve((window as any)['pdfjs-dist/build/pdf'])
+          return
+        }
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js'
+        script.onload = () => {
+          const pdfjs = (window as any)['pdfjs-dist/build/pdf']
+          pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js'
+          resolve(pdfjs)
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+    }
+
+    const extractTextFromPDF = async (file: File): Promise<string> => {
+      const pdfjs = await loadPdfJS()
+      const arrayBuffer = await file.arrayBuffer()
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
+      let fullText = ''
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i)
+        const textContent = await page.getTextContent()
+        const pageText = textContent.items.map((item: any) => item.str).join(' ')
+        fullText += `[Page ${i}]\n${pageText}\n\n`
+      }
+      return fullText.trim()
+    }
+
+    let userPrompt = textToUse.trim()
+    let dbContent = userPrompt
+    
+    // Process attachments
+    if (attachments.length > 0) {
+      const processedAttachments: any[] = []
+      for (const file of attachments) {
+        try {
+          if (file.type.startsWith('image/')) {
+            const dataUrl = await readFileAsDataURL(file)
+            processedAttachments.push({
+              name: file.name,
+              type: file.type,
+              content: dataUrl
+            })
+          } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+            const pdfText = await extractTextFromPDF(file)
+            const dataUrl = await readFileAsDataURL(file)
+            processedAttachments.push({
+              name: file.name,
+              type: file.type,
+              content: pdfText,
+              dataUrl: dataUrl
+            })
+          } else {
+            const textContent = await readFileAsText(file)
+            const dataUrl = await readFileAsDataURL(file)
+            processedAttachments.push({
+              name: file.name,
+              type: file.type,
+              content: textContent,
+              dataUrl: dataUrl
+            })
+          }
+        } catch (err) {
+          console.error('Failed to read file:', file.name, err)
+        }
+      }
+      if (processedAttachments.length > 0) {
+        dbContent = JSON.stringify({
+          text: userPrompt,
+          attachments: processedAttachments
+        })
+      }
+    }
+
     setInput('')
     setAttachments([])
-    setIsGenerating(true)
 
     // Save user message
     try {
       const userMsg = await fetch(`/api/sessions/${sessionId}/messages`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'user', content: userContent }),
+        body: JSON.stringify({ role: 'user', content: dbContent }),
       }).then(r => r.json())
 
       addMessage(sessionId, userMsg)
 
       if (session.messages.length === 0) {
-        const title = userContent.slice(0, 50) + (userContent.length > 50 ? '...' : '')
+        const title = textToUse.trim().slice(0, 50) + (textToUse.trim().length > 50 ? '...' : '')
         fetch(`/api/sessions/${sessionId}`, {
           method: 'PUT', credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -127,7 +225,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
     // Stream response
     try {
       abortRef.current = new AbortController()
-      const allMessages = [...session.messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })), { role: 'user', content: userContent }]
+      const allMessages = [...session.messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })), { role: 'user', content: dbContent }]
 
       const response = await fetch('/api/chat/stream', {
         method: 'POST', credentials: 'include',
@@ -246,7 +344,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
                 <label className="p-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-xl transition-colors cursor-pointer text-text-secondary hover:text-text-primary">
                   <Paperclip className="w-4 h-4" />
                   <input type="file" className="hidden" multiple onChange={e => {
-                    if (e.target.files) setAttachments(prev => [...prev, ...Array.from(e.target.files!).map(f => ({ name: f.name, type: f.type, size: f.size }))])
+                    if (e.target.files) setAttachments(prev => [...prev, ...Array.from(e.target.files!)])
                   }} />
                 </label>
                 <button onClick={() => handleSend()} disabled={!input.trim() && attachments.length === 0}
