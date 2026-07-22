@@ -41,7 +41,7 @@ function parseErrorMessage(content: string): ErrorInfo | null {
     return { type: 'not_found', icon: <AlertTriangle className="w-5 h-5" />, title: 'Model Not Found', description: 'The selected model is not available. Please choose a different model.', color: 'from-orange-500/10 to-amber-500/10 border-orange-500/20' }
   }
   if (lower.includes('network') || lower.includes('fetch') || lower.includes('connection')) {
-    return { type: 'network', icon: <WifiOff className="w-5 h-5" />, title: 'Connection Failed', description: 'Cannot reach the server. Check your internet connection.', color: 'from-blue-500/10 to-cyan-500/10 border-blue-500/20' }
+    return { type: 'network', icon: <WifiOff className="w-5 h-5" />, title: 'Connection Failed', description: 'Cannot reach the server. Check your internet connection.', color: 'from-pink-500/10 to-rose-500/10 border-pink-500/20' }
   }
   if (lower.includes('too large') || lower.includes('request_too_large') || lower.includes('entity too large')) {
     return { type: 'request_too_large', icon: <AlertTriangle className="w-5 h-5" />, title: 'Request Too Large', description: msg || 'Pesan terlalu besar. Coba mulai percakapan baru.', color: 'from-orange-500/10 to-amber-500/10 border-orange-500/20' }
@@ -144,7 +144,7 @@ export function MessageBubble({ message, onRetry, onEdit, onDelete }: { message:
         </div>
       )}
 
-      <div className={cn('relative max-w-[75%] rounded-2xl px-4 py-2.5 transition-all duration-150',
+      <div className={cn('relative max-w-[min(75%,720px)] rounded-2xl px-4 py-2.5 transition-all duration-150',
         isUser
           ? 'bg-accent-600 text-white rounded-tr-sm'
           : 'bg-surface border border-border rounded-tl-sm')}>

@@ -90,9 +90,11 @@ export default function SettingsPage() {
     fetch('/api/providers', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
-        const s: Record<string, boolean> = {}
-        data.forEach((p: any) => { s[p.id] = p.configured })
-        setProviderStatus(s)
+        if (Array.isArray(data)) {
+          const s: Record<string, boolean> = {}
+          data.forEach((p: any) => { s[p.id] = p.configured })
+          setProviderStatus(s)
+        }
       }).catch(() => {})
     loadModels(defaultProvider)
   }, [])
@@ -101,10 +103,18 @@ export default function SettingsPage() {
 
   const handleProviderChange = async (providerId: string) => {
     if (providerStatus[providerId] === false) return
-    await loadModels(providerId)
-    const m = models.length > 0 ? models : []
-    await updateSettings({ defaultProvider: providerId, defaultModel: m[0]?.id || '' })
-    notifySuccess(`Provider changed to ${PROVIDER_INFO[providerId as keyof typeof PROVIDER_INFO]?.name}`)
+    setLoadingModels(true)
+    try {
+      const res = await fetch(`/api/models?provider=${providerId}`, { credentials: 'include' })
+      if (res.ok) {
+        const freshModels = await res.json()
+        setModels(freshModels)
+        await updateSettings({ defaultProvider: providerId, defaultModel: freshModels[0]?.id || '' })
+        notifySuccess(`Provider changed to ${PROVIDER_INFO[providerId as keyof typeof PROVIDER_INFO]?.name}`)
+      }
+    } catch {} finally {
+      setLoadingModels(false)
+    }
   }
 
   const handleLanguageChange = (lang: string) => {
@@ -182,25 +192,35 @@ export default function SettingsPage() {
                     <h3 className="text-xl font-bold text-text-primary tracking-tight">General</h3>
                     <p className="text-sm text-text-secondary mt-1">Manage your general preferences</p>
                   </div>
-                  <div className="glass rounded-2xl p-5 shadow-soft">
+                  <div className="premium-card p-5 rounded-2xl">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">Streaming</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Show responses in real-time as they generate</p>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                          <RefreshCw className="w-4 h-4 text-accent-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-text-primary">Streaming</p>
+                          <p className="text-xs text-text-secondary mt-0.5">Show responses in real-time as they generate</p>
+                        </div>
                       </div>
                       <Toggle checked={streaming} onChange={() => updateSettings({ streaming: !streaming })} />
                     </div>
                   </div>
-                  <div className="glass rounded-2xl p-5 shadow-soft">
+                  <div className="premium-card p-5 rounded-2xl">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">Language</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Interface language (UI text)</p>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                          <Bell className="w-4 h-4 text-accent-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-text-primary">Language</p>
+                          <p className="text-xs text-text-secondary mt-0.5">Interface language (UI text)</p>
+                        </div>
                       </div>
                       <select
                         value={language}
                         onChange={e => handleLanguageChange(e.target.value)}
-                        className="px-3 py-1.5 bg-background border border-border rounded-xl text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition-all"
+                        className="px-3 py-2 bg-background/80 border border-border rounded-xl text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition-all"
                       >
                         <option value="en">English</option>
                         <option value="id">Bahasa Indonesia</option>
@@ -246,29 +266,35 @@ export default function SettingsPage() {
                   <div className="space-y-3">
                     {providers.map(p => {
                       const configured = providerStatus[p.id] !== false
+                      const isSelected = defaultProvider === p.id
                       return (
                         <button
                           key={p.id}
                           onClick={() => handleProviderChange(p.id)}
                           disabled={!configured}
                           className={`flex items-center gap-4 w-full p-4 rounded-2xl border-2 text-left transition-all ${
-                            defaultProvider === p.id
-                              ? 'border-accent-500 bg-accent-500/[0.06] shadow-soft'
+                            isSelected
+                              ? 'border-accent-500/40 bg-accent-500/[0.06] shadow-soft'
                               : configured
-                                ? 'border-border hover:border-accent-300 dark:hover:border-accent-700 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-                                : 'border-border/60 opacity-50 cursor-not-allowed'
+                                ? 'border-border/60 hover:border-accent-300/40 dark:hover:border-accent-700/40 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] hover:shadow-sm'
+                                : 'border-border/30 opacity-50 cursor-not-allowed'
                           }`}
                         >
-                          <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-soft" style={{ backgroundColor: p.color }}>
+                          <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-soft flex-shrink-0" style={{ backgroundColor: p.color }}>
                             {p.name[0]}
                           </div>
-                          <div className="flex-1 text-left">
+                          <div className="flex-1 min-w-0 text-left">
                             <p className="text-sm font-semibold text-text-primary">{p.name}</p>
-                            <p className="text-xs text-text-secondary mt-0.5">{p.description}</p>
+                            <p className="text-xs text-text-secondary mt-0.5 truncate">{p.description}</p>
+                            {isSelected && defaultModel && (
+                              <p className="text-[11px] mt-1.5 text-accent-600 dark:text-accent-400 font-medium truncate">
+                                Model: {defaultModel.split('/').pop()?.replace(/-/g, ' ')}
+                              </p>
+                            )}
                           </div>
-                          {!configured && <span className="text-xs px-2.5 py-1 bg-warning/10 text-warning rounded-lg font-medium">API Key Required</span>}
-                          {defaultProvider === p.id && configured && (
-                            <div className="w-6 h-6 rounded-full bg-accent-600 flex items-center justify-center shadow-soft">
+                          {!configured && <span className="text-xs px-2.5 py-1 bg-warning/10 text-warning rounded-lg font-medium whitespace-nowrap">API Key Required</span>}
+                          {isSelected && configured && (
+                            <div className="w-6 h-6 rounded-full bg-accent-600 flex items-center justify-center shadow-soft flex-shrink-0">
                               <div className="w-2 h-2 bg-white rounded-full" />
                             </div>
                           )}
@@ -276,6 +302,11 @@ export default function SettingsPage() {
                       )
                     })}
                   </div>
+                  {loadingModels && (
+                    <div className="flex items-center gap-2 text-sm text-text-secondary px-1">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Loading models...
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -286,52 +317,98 @@ export default function SettingsPage() {
                     <h3 className="text-xl font-bold text-text-primary tracking-tight">Model Settings</h3>
                     <p className="text-sm text-text-secondary mt-1">Configure AI model parameters</p>
                   </div>
-                  <div className="glass rounded-2xl p-5 shadow-soft">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-semibold text-text-primary">Default Model</label>
-                      <button onClick={() => loadModels(defaultProvider)} className="text-xs text-accent-600 hover:text-accent-700 font-medium flex items-center gap-1 transition-colors">
+                  <div className="premium-card p-5 rounded-2xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                          <Brain className="w-4 h-4 text-accent-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-text-primary">Default Model</p>
+                          <p className="text-xs text-text-secondary mt-0.5">Active provider: <span className="font-medium text-accent-600 dark:text-accent-400">{PROVIDER_INFO[defaultProvider as keyof typeof PROVIDER_INFO]?.name || defaultProvider}</span></p>
+                        </div>
+                      </div>
+                      <button onClick={() => loadModels(defaultProvider)} className="text-xs text-accent-600 hover:text-accent-700 font-medium flex items-center gap-1.5 px-3 py-1.5 bg-accent-500/10 rounded-xl transition-colors">
                         <RefreshCw className={`w-3 h-3 ${loadingModels ? 'animate-spin' : ''}`} /> Refresh
                       </button>
                     </div>
                     {loadingModels ? (
-                      <div className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm text-text-secondary flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4 animate-spin" /> Loading models...
+                      <div className="flex items-center gap-2.5 px-4 py-3.5 bg-background/60 border border-border/60 rounded-xl text-sm text-text-secondary">
+                        <RefreshCw className="w-4 h-4 animate-spin text-accent-500" /> Loading models...
                       </div>
                     ) : (
                       <select
                         value={defaultModel}
                         onChange={e => updateSettings({ defaultModel: e.target.value })}
-                        className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition-all"
+                        className="w-full px-4 py-3 bg-background/80 border border-border/60 rounded-xl text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 transition-all"
                       >
-                        {models.length === 0 && <option>No models available</option>}
+                        {models.length === 0 && <option value="">No models available for this provider</option>}
                         {models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                       </select>
                     )}
                   </div>
-                  <div className="glass rounded-2xl p-5 shadow-soft">
-                    <label className="text-sm font-semibold text-text-primary">Temperature: <span className="text-accent-600">{temperature}</span></label>
-                    <p className="text-xs text-text-secondary mt-0.5 mb-3">Controls randomness. Lower = more focused.</p>
+                  <div className="premium-card p-5 rounded-2xl">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                        <Sliders className="w-4 h-4 text-accent-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">Temperature: <span className="text-accent-600">{temperature}</span></p>
+                        <p className="text-xs text-text-secondary mt-0.5">Controls randomness. Lower = more focused, Higher = more creative.</p>
+                      </div>
+                    </div>
                     <input type="range" min="0" max="2" step="0.1" value={temperature}
                       onChange={e => updateSettings({ temperature: parseFloat(e.target.value) })} className="w-full accent-accent-600" />
+                    <div className="flex justify-between text-[10px] text-text-secondary/50 mt-1 px-0.5">
+                      <span>Precise</span>
+                      <span>Balanced</span>
+                      <span>Creative</span>
+                    </div>
                   </div>
-                  <div className="glass rounded-2xl p-5 shadow-soft">
-                    <label className="text-sm font-semibold text-text-primary">Max Tokens: <span className="text-accent-600">{maxTokens}</span></label>
-                    <p className="text-xs text-text-secondary mt-0.5 mb-3">Maximum length of the response.</p>
+                  <div className="premium-card p-5 rounded-2xl">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                        <Brain className="w-4 h-4 text-accent-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">Max Tokens: <span className="text-accent-600">{maxTokens}</span></p>
+                        <p className="text-xs text-text-secondary mt-0.5">Maximum length of the AI response.</p>
+                      </div>
+                    </div>
                     <input type="range" min="256" max="32768" step="256" value={maxTokens}
                       onChange={e => updateSettings({ maxTokens: parseInt(e.target.value) })} className="w-full accent-accent-600" />
+                    <div className="flex justify-between text-[10px] text-text-secondary/50 mt-1 px-0.5">
+                      <span>256</span>
+                      <span>16K</span>
+                      <span>32K</span>
+                    </div>
                   </div>
-                  <div className="glass rounded-2xl p-5 shadow-soft">
-                    <label className="text-sm font-semibold text-text-primary">Top P: <span className="text-accent-600">{topP}</span></label>
-                    <p className="text-xs text-text-secondary mt-0.5 mb-3">Lower = more conservative.</p>
+                  <div className="premium-card p-5 rounded-2xl">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                        <Sliders className="w-4 h-4 text-accent-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">Top P: <span className="text-accent-600">{topP}</span></p>
+                        <p className="text-xs text-text-secondary mt-0.5">Nucleus sampling. Lower = more conservative outputs.</p>
+                      </div>
+                    </div>
                     <input type="range" min="0" max="1" step="0.05" value={topP}
                       onChange={e => updateSettings({ topP: parseFloat(e.target.value) })} className="w-full accent-accent-600" />
                   </div>
-                  <div className="glass rounded-2xl p-5 shadow-soft">
-                    <label className="text-sm font-semibold text-text-primary">System Prompt</label>
-                    <p className="text-xs text-text-secondary mt-0.5 mb-3">Custom instructions for the AI.</p>
+                  <div className="premium-card p-5 rounded-2xl">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center flex-shrink-0">
+                        <Keyboard className="w-4 h-4 text-accent-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">System Prompt</p>
+                        <p className="text-xs text-text-secondary mt-0.5">Custom instructions for the AI to follow.</p>
+                      </div>
+                    </div>
                     <textarea value={systemPrompt} onChange={e => updateSettings({ systemPrompt: e.target.value })}
                       placeholder="You are a helpful assistant..." rows={4}
-                      className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 resize-none transition-all" />
+                      className="w-full px-4 py-3 bg-background/60 border border-border/60 rounded-xl text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 resize-none transition-all placeholder:text-text-secondary/40" />
                   </div>
                 </div>
               )}

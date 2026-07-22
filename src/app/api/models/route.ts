@@ -2,112 +2,87 @@ import { NextResponse } from 'next/server'
 import { getModelsForProvider } from '@/lib/providers'
 import type { AIModel } from '@/lib/types'
 
-async function fetchGroqModels(): Promise<AIModel[]> {
-  const apiKey = process.env.GROQ_API_KEY
-  if (!apiKey) return getModelsForProvider('groq')
+export const dynamic = 'force-dynamic'
+
+async function fetchModelsFrom9Router(): Promise<any[]> {
+  const baseURL = process.env.OPENAI_BASE_URL || 'http://127.0.0.1:20128/v1'
+  const apiKey = process.env.OPENAI_API_KEY?.trim()
+  const headers: Record<string, string> = {}
+  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`
 
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/models', {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    })
-    if (!res.ok) return getModelsForProvider('groq')
+    const res = await fetch(`${baseURL}/models`, { headers, next: { revalidate: 60 } })
+    if (!res.ok) return []
     const data = await res.json()
-    return data.data
-      .filter((m: any) => m.active && !m.owned_by?.includes('whisper'))
-      .map((m: any) => ({
-        id: m.id,
-        name: m.id.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-        provider: 'groq' as const,
-        maxTokens: m.context_window || 32768,
-        contextWindow: m.context_window || 128000,
-        inputPrice: 0,
-        outputPrice: 0,
-        supportsStreaming: true,
-        supportsImages: m.id.includes('vision'),
-      }))
-      .sort((a: AIModel, b: AIModel) => a.name.localeCompare(b.name))
-  } catch {
-    return getModelsForProvider('groq')
-  }
-}
-
-async function fetchOpenRouterModels(): Promise<AIModel[]> {
-  try {
-    const res = await fetch('https://openrouter.ai/api/v1/models')
-    if (!res.ok) return getModelsForProvider('openrouter')
-    const data = await res.json()
-    return data.data
-      .filter((m: any) => !m.id.includes('free') && m.pricing?.prompt)
-      .map((m: any) => ({
-        id: m.id,
-        name: m.name || m.id.split('/').pop(),
-        provider: 'openrouter' as const,
-        maxTokens: m.top_provider?.max_completion_tokens || 4096,
-        contextWindow: m.context_length || 128000,
-        inputPrice: parseFloat(m.pricing?.prompt || '0') * 1000000,
-        outputPrice: parseFloat(m.pricing?.completion || '0') * 1000000,
-        supportsStreaming: true,
-        supportsImages: m.architecture?.modality?.includes('image') || false,
-      }))
-      .sort((a: AIModel, b: AIModel) => a.name.localeCompare(b.name))
-      .slice(0, 200)
-  } catch {
-    return getModelsForProvider('openrouter')
-  }
-}
-
-async function fetchCerebrasModels(): Promise<AIModel[]> {
-  const apiKey = process.env.CEREBRAS_API_KEY?.trim()
-  if (!apiKey) return getModelsForProvider('cerebras')
-
-  try {
-    const res = await fetch('https://api.cerebras.ai/v1/models', {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    })
-    if (!res.ok) return getModelsForProvider('cerebras')
-    const data = await res.json()
-    return (data.data || [])
-      .map((m: any) => ({
-        id: m.id,
-        name: m.id.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-        provider: 'cerebras' as const,
-        maxTokens: 8192,
-        contextWindow: 128000,
-        inputPrice: 0,
-        outputPrice: 0,
-        supportsStreaming: true,
-        supportsImages: false,
-      }))
-      .sort((a: AIModel, b: AIModel) => a.name.localeCompare(b.name))
-  } catch {
-    return getModelsForProvider('cerebras')
+    return data.data || []
+  } catch (error) {
+    console.error('Failed to fetch models from 9Router:', error)
+    return []
   }
 }
 
 export async function GET(request: Request) {
-  const url = new URL(request.url)
-  const provider = url.searchParams.get('provider')
+  try {
+    const url = new URL(request.url)
+    const provider = url.searchParams.get('provider')
 
-  if (!provider) {
-    return NextResponse.json({ message: 'provider parameter required' }, { status: 400 })
+    if (!provider) {
+      return NextResponse.json({ message: 'provider parameter required' }, { status: 400 })
+    }
+
+    const rawModels = await fetchModelsFrom9Router()
+    if (rawModels.length === 0) {
+      // Fallback to hardcoded list if 9Router is offline or empty
+      return NextResponse.json(getModelsForProvider(provider as any))
+    }
+
+    // Filter and map models from 9Router based on the selected provider
+    let filtered = rawModels
+
+    if (provider === 'claude') {
+      filtered = rawModels.filter(m => m.id === 'dewis' || m.id.includes('claude') || m.id.includes('anthropic'))
+    } else if (provider === 'gemini') {
+      filtered = rawModels.filter(m => m.id === 'dewis' || m.id.includes('gemini') || m.id.includes('google'))
+    } else if (provider === 'deepseek') {
+      filtered = rawModels.filter(m => m.id === 'dewis' || m.id.includes('deepseek'))
+    } else if (provider === 'mistral') {
+      filtered = rawModels.filter(m => m.id === 'dewis' || m.id.includes('mistral') || m.id.includes('mixtral') || m.id.includes('codestral'))
+    } else if (provider === 'groq') {
+      filtered = rawModels.filter(m => m.id === 'dewis' || m.id.includes('grok') || m.id.includes('gpt-4') || m.id.includes('o3'))
+    } else if (provider === 'cerebras') {
+      filtered = rawModels.filter(m => m.id === 'dewis' || m.id.includes('cerebras') || m.id.includes('llama'))
+    } else if (provider === 'openrouter') {
+      filtered = rawModels
+    }
+
+    const models: AIModel[] = filtered.map(m => {
+      // Format a nice human-readable name from the model ID
+      let name = m.id.split('/').pop() || m.id
+      name = name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+
+      return {
+        id: m.id,
+        name: m.id === 'dewis' ? 'Free (dewis)' : name,
+        provider: provider as any,
+        maxTokens: m.context_window || 4096,
+        contextWindow: m.context_window || 128000,
+        inputPrice: 0,
+        outputPrice: 0,
+        supportsStreaming: true,
+        supportsImages: m.id.includes('vision') || m.id.includes('claude-sonnet') || m.id.includes('gpt-4') || m.id.includes('gemini'),
+      }
+    })
+
+    // Ensure "Free (dewis)" is always first, then sort alphabetically by name
+    models.sort((a, b) => {
+      if (a.id === 'dewis') return -1
+      if (b.id === 'dewis') return 1
+      return a.name.localeCompare(b.name)
+    })
+
+    return NextResponse.json(models)
+  } catch (error: any) {
+    console.error("CRITICAL ERROR IN GET /api/models:", error)
+    return NextResponse.json({ message: error?.message || String(error) }, { status: 500 })
   }
-
-  let models: AIModel[] = []
-
-  switch (provider) {
-    case 'groq':
-      models = await fetchGroqModels()
-      break
-    case 'openrouter':
-      models = await fetchOpenRouterModels()
-      break
-    case 'cerebras':
-      models = await fetchCerebrasModels()
-      break
-    default:
-      models = getModelsForProvider(provider as any)
-      break
-  }
-
-  return NextResponse.json(models)
 }

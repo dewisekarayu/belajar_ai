@@ -2,9 +2,9 @@ import type { ChatMessage, AIModel } from '@/lib/types'
 import { BaseAIProvider, type ProviderResponse, type StreamCallback, type ChatOptions } from './base'
 
 const CEREBRAS_MODELS: AIModel[] = [
-  { id: 'gpt-oss-120b', name: 'GPT-OSS 120B', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
-  { id: 'zai-glm-4.7', name: 'GLM-4.7', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
-  { id: 'gemma-4-31b', name: 'Gemma 4 31B', provider: 'cerebras', maxTokens: 8192, contextWindow: 128000, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
+  { id: 'dewis', name: 'Free (dewis)', provider: 'cerebras', maxTokens: 4096, contextWindow: 32768, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
+  { id: 'kc/openai/gpt-4.1', name: 'GPT-4.1', provider: 'cerebras', maxTokens: 32768, contextWindow: 1000000, inputPrice: 2, outputPrice: 8, supportsStreaming: true, supportsImages: true },
+  { id: 'kc/openai/o3', name: 'o3', provider: 'cerebras', maxTokens: 100000, contextWindow: 200000, inputPrice: 10, outputPrice: 40, supportsStreaming: true, supportsImages: true },
 ]
 
 export class CerebrasProvider extends BaseAIProvider {

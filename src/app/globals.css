@@ -5,10 +5,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --accent: #2563EB;
-  --accent-hover: #1D4ED8;
-  --accent-light: #3B82F6;
-  --accent-subtle: #EFF6FF;
+  --accent: #FF6B9D;
+  --accent-hover: #F24882;
+  --accent-light: #FFB8D3;
+  --accent-subtle: #FFF0F6;
   --bg-primary: #F8F9FB;
   --bg-sidebar: #F0F1F3;
   --bg-surface: #FFFFFF;
@@ -27,10 +27,10 @@
 }
 
 .dark {
-  --accent: #3B82F6;
-  --accent-hover: #2563EB;
-  --accent-light: #60A5FA;
-  --accent-subtle: rgba(59, 130, 246, 0.08);
+  --accent: #FF5A92;
+  --accent-hover: #FF1F6B;
+  --accent-light: #FF8EB2;
+  --accent-subtle: rgba(255, 31, 107, 0.12);
   --bg-primary: #08090B;
   --bg-sidebar: #0E0F11;
   --bg-surface: #151618;
@@ -107,6 +107,19 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
+}
+
+/* Premium card for settings */
+.premium-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-soft);
+  transition: all 0.2s ease;
+}
+
+.premium-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--border-color) 60%, var(--accent) 40%);
 }
 
 /* Gradient background utility */

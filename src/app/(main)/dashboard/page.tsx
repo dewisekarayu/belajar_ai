@@ -24,9 +24,11 @@ export default function DashboardPage() {
     fetch('/api/providers', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
-        const s: Record<string, boolean> = {}
-        data.forEach((p: any) => { s[p.id] = p.configured })
-        setProviderStatus(s)
+        if (Array.isArray(data)) {
+          const s: Record<string, boolean> = {}
+          data.forEach((p: any) => { s[p.id] = p.configured })
+          setProviderStatus(s)
+        }
       }).catch(() => {})
   }, [])
 

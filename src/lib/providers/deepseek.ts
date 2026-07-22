@@ -2,8 +2,9 @@ import type { ChatMessage, AIModel } from '@/lib/types'
 import { BaseAIProvider, type ProviderResponse, type StreamCallback, type ChatOptions } from './base'
 
 const DEEPSEEK_MODELS: AIModel[] = [
-  { id: 'deepseek-chat', name: 'DeepSeek Chat (V3)', provider: 'deepseek', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.14, outputPrice: 0.28, supportsStreaming: true, supportsImages: false },
-  { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner (R1)', provider: 'deepseek', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.55, outputPrice: 2.19, supportsStreaming: true, supportsImages: false },
+  { id: 'dewis', name: 'Free (dewis)', provider: 'deepseek', maxTokens: 4096, contextWindow: 32768, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
+  { id: 'kc/deepseek/deepseek-chat', name: 'DeepSeek Chat (V3)', provider: 'deepseek', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.14, outputPrice: 0.28, supportsStreaming: true, supportsImages: false },
+  { id: 'kc/deepseek/deepseek-reasoner', name: 'DeepSeek Reasoner (R1)', provider: 'deepseek', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.55, outputPrice: 2.19, supportsStreaming: true, supportsImages: false },
 ]
 
 export class DeepSeekProvider extends BaseAIProvider {

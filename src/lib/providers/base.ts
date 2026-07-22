@@ -79,7 +79,7 @@ export const PROVIDER_INFO: Record<AIProvider, ProviderInfo> = {
     description: 'Anthropic\'s Claude - Advanced reasoning and analysis',
     icon: 'brain',
     color: '#D4756B',
-    enabled: false,
+    enabled: true,
     requiresApiKey: true,
   },
   gemini: {
@@ -88,7 +88,7 @@ export const PROVIDER_INFO: Record<AIProvider, ProviderInfo> = {
     description: 'Google\'s Gemini - Multimodal AI',
     icon: 'sparkles',
     color: '#4285F4',
-    enabled: false,
+    enabled: true,
     requiresApiKey: true,
   },
   groq: {
@@ -106,7 +106,7 @@ export const PROVIDER_INFO: Record<AIProvider, ProviderInfo> = {
     description: 'Access multiple models via OpenRouter',
     icon: 'network',
     color: '#6366F1',
-    enabled: false,
+    enabled: true,
     requiresApiKey: true,
   },
   cerebras: {
@@ -115,7 +115,7 @@ export const PROVIDER_INFO: Record<AIProvider, ProviderInfo> = {
     description: 'Cerebras inference engine',
     icon: 'cpu',
     color: '#FF6B35',
-    enabled: false,
+    enabled: true,
     requiresApiKey: true,
   },
   mistral: {
@@ -133,7 +133,7 @@ export const PROVIDER_INFO: Record<AIProvider, ProviderInfo> = {
     description: 'DeepSeek reasoning models',
     icon: 'search',
     color: '#4D6BFE',
-    enabled: false,
+    enabled: true,
     requiresApiKey: true,
   },
 }

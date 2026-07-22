@@ -54,14 +54,20 @@ export function Sidebar() {
     loadSettings()
     fetch('/api/sessions', { credentials: 'include' })
       .then(r => r.json())
-      .then(data => setSessions(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setSessions(data)
+        }
+      })
       .catch(() => {})
     fetch('/api/providers', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
-        const status: Record<string, boolean> = {}
-        data.forEach((p: any) => { status[p.id] = p.configured })
-        setProviderStatus(status)
+        if (Array.isArray(data)) {
+          const status: Record<string, boolean> = {}
+          data.forEach((p: any) => { status[p.id] = p.configured })
+          setProviderStatus(status)
+        }
       })
       .catch(() => {})
   }, [])
@@ -132,8 +138,11 @@ export function Sidebar() {
   }
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    localStorage.clear()
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    } catch {}
+    localStorage.removeItem('user')
+    localStorage.removeItem('token')
     window.location.href = '/login'
   }
 

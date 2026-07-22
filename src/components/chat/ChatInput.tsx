@@ -64,7 +64,12 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
     setAttachments(prev => [...prev, ...files.map(f => ({ name: f.name, type: f.type, size: f.size }))])
   }, [])
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'], 'application/pdf': ['.pdf'], 'text/plain': ['.txt'], 'text/markdown': ['.md'] } })
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    noClick: true,
+    noKeyboard: true,
+    accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'], 'application/pdf': ['.pdf'], 'text/plain': ['.txt'], 'text/markdown': ['.md'] }
+  })
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -84,6 +89,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
     setAttachments([])
     setIsGenerating(true)
 
+    // Save user message
     try {
       const userMsg = await fetch(`/api/sessions/${sessionId}/messages`, {
         method: 'POST', credentials: 'include',
@@ -95,7 +101,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
 
       if (session.messages.length === 0) {
         const title = userContent.slice(0, 50) + (userContent.length > 50 ? '...' : '')
-        await fetch(`/api/sessions/${sessionId}`, {
+        fetch(`/api/sessions/${sessionId}`, {
           method: 'PUT', credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title }),
@@ -105,9 +111,12 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
         }))
       }
     } catch {
-      notifyError('Failed to save message')
+      notifyError('Gagal menyimpan pesan')
+      setIsGenerating(false)
+      return
     }
 
+    // Add temp assistant message
     const tempId = 'temp-' + Date.now()
     addMessage(sessionId, {
       id: tempId, sessionId, role: 'assistant', content: '',
@@ -115,6 +124,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
       tokenInput: null, tokenOutput: null, createdAt: new Date().toISOString(),
     })
 
+    // Stream response
     try {
       abortRef.current = new AbortController()
       const allMessages = [...session.messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })), { role: 'user', content: userContent }]
@@ -124,7 +134,6 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
         headers: { 'Content-Type': 'application/json' },
         signal: abortRef.current.signal,
         body: JSON.stringify({
-          provider: session.provider,
           model: session.model,
           messages: allMessages,
           stream: true,
@@ -134,35 +143,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
-        if (err.type === 'missing_api_key') {
-          updateLastAssistant(sessionId, `Error: ${err.message}`)
-          return
-        }
-        if (err.type === 'rate_limited') {
-          updateLastAssistant(sessionId, `Error: ${err.message}`)
-          return
-        }
-        if (err.type === 'no_credits') {
-          updateLastAssistant(sessionId, `Error: ${err.message}`)
-          return
-        }
-        if (err.type === 'invalid_key') {
-          updateLastAssistant(sessionId, `Error: ${err.message}`)
-          return
-        }
-        if (err.type === 'model_not_found') {
-          updateLastAssistant(sessionId, `Error: ${err.message}`)
-          return
-        }
-        if (err.type === 'forbidden') {
-          updateLastAssistant(sessionId, `Error: ${err.message}`)
-          return
-        }
-        if (err.type === 'request_too_large') {
-          updateLastAssistant(sessionId, `Error: ${err.message}`)
-          return
-        }
-        throw new Error(err.message || 'Request failed')
+        throw new Error(err.message || `Request failed (${response.status})`)
       }
 
       const contentType = response.headers.get('content-type') || ''
@@ -171,28 +152,25 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
       if (contentType.includes('text/event-stream')) {
         const reader = response.body?.getReader()
         if (!reader) throw new Error('No response body')
-
         const decoder = new TextDecoder()
 
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
           const chunk = decoder.decode(value, { stream: true })
-          for (const line of chunk.split('\n').filter(l => l.trim())) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6)
-              if (data === '[DONE]') break
-              try {
-                const parsed = JSON.parse(data)
-                if (parsed.type === 'text' && parsed.content) {
-                  fullText += parsed.content
-                  updateLastAssistant(sessionId, fullText)
-                } else if (parsed.type === 'error') {
-                  updateLastAssistant(sessionId, `Error: ${parsed.message}`)
-                  return
-                }
-              } catch {}
-            }
+          for (const line of chunk.split('\n')) {
+            if (!line.startsWith('data: ')) continue
+            const data = line.slice(6)
+            if (data === '[DONE]') break
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.type === 'text' && parsed.content) {
+                fullText += parsed.content
+                updateLastAssistant(sessionId, fullText)
+              } else if (parsed.type === 'error') {
+                throw new Error(parsed.message)
+              }
+            } catch {}
           }
         }
       } else {
@@ -200,27 +178,8 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
         if (result.message) {
           fullText = result.message
           updateLastAssistant(sessionId, fullText)
-        } else if (result.type === 'missing_api_key') {
-          updateLastAssistant(sessionId, `Error: ${result.message}`)
-          return
-        } else if (result.type === 'rate_limited') {
-          updateLastAssistant(sessionId, `Error: ${result.message}`)
-          return
-        } else if (result.type === 'no_credits') {
-          updateLastAssistant(sessionId, `Error: ${result.message}`)
-          return
-        } else if (result.type === 'invalid_key') {
-          updateLastAssistant(sessionId, `Error: ${result.message}`)
-          return
-        } else if (result.type === 'model_not_found') {
-          updateLastAssistant(sessionId, `Error: ${result.message}`)
-          return
-        } else if (result.type === 'forbidden') {
-          updateLastAssistant(sessionId, `Error: ${result.message}`)
-          return
-        } else if (result.type === 'request_too_large') {
-          updateLastAssistant(sessionId, `Error: ${result.message}`)
-          return
+        } else {
+          throw new Error(result.message || 'No response')
         }
       }
 
@@ -234,16 +193,15 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
         useChatStore.setState(state => ({
           sessions: state.sessions.map(s => {
             if (s.id !== sessionId) return s
-            const msgs = s.messages.map(m => m.id === tempId ? assistantMsg : m)
-            return { ...s, messages: msgs }
+            return { ...s, messages: s.messages.map(m => m.id === tempId ? assistantMsg : m) }
           }),
         }))
       }
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        updateLastAssistant(sessionId, '(Stopped)')
+        updateLastAssistant(sessionId, '(Dihentikan)')
       } else {
-        updateLastAssistant(sessionId, `Error: ${error.message || 'Failed to get response'}`)
+        updateLastAssistant(sessionId, `Error: ${error.message || 'Gagal mendapat respons'}`)
       }
     } finally {
       setIsGenerating(false)

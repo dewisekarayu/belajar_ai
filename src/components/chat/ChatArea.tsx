@@ -143,7 +143,7 @@ export function ChatArea() {
             </motion.div>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+          <div className="pl-4 pr-24 py-6 space-y-4">
             {session.messages.map((message, idx) => (
               <MessageBubble
                 key={message.id}

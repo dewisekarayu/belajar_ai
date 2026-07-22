@@ -2,15 +2,10 @@ import type { ChatMessage, AIModel } from '@/lib/types'
 import { BaseAIProvider, type ProviderResponse, type StreamCallback, type ChatOptions } from './base'
 
 const MISTRAL_MODELS: AIModel[] = [
-  { id: 'mistral-large-latest', name: 'Mistral Large', provider: 'mistral', maxTokens: 8192, contextWindow: 128000, inputPrice: 2, outputPrice: 6, supportsStreaming: true, supportsImages: true },
-  { id: 'mistral-medium-latest', name: 'Mistral Medium', provider: 'mistral', maxTokens: 8192, contextWindow: 128000, inputPrice: 2.7, outputPrice: 8.1, supportsStreaming: true, supportsImages: false },
-  { id: 'mistral-small-latest', name: 'Mistral Small', provider: 'mistral', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.2, outputPrice: 0.6, supportsStreaming: true, supportsImages: false },
-  { id: 'ministral-8b-latest', name: 'Ministral 8B', provider: 'mistral', maxTokens: 8192, contextWindow: 32000, inputPrice: 0.1, outputPrice: 0.1, supportsStreaming: true, supportsImages: false },
-  { id: 'ministral-3b-latest', name: 'Ministral 3B', provider: 'mistral', maxTokens: 8192, contextWindow: 32000, inputPrice: 0.04, outputPrice: 0.04, supportsStreaming: true, supportsImages: false },
-  { id: 'codestral-latest', name: 'Codestral', provider: 'mistral', maxTokens: 8192, contextWindow: 32000, inputPrice: 0.3, outputPrice: 0.9, supportsStreaming: true, supportsImages: false },
-  { id: 'pixtral-large-latest', name: 'Pixtral Large', provider: 'mistral', maxTokens: 8192, contextWindow: 128000, inputPrice: 2, outputPrice: 6, supportsStreaming: true, supportsImages: true },
-  { id: 'open-mixtral-8x22b', name: 'Mixtral 8x22B', provider: 'mistral', maxTokens: 8192, contextWindow: 65536, inputPrice: 2, outputPrice: 6, supportsStreaming: true, supportsImages: false },
-  { id: 'open-mixtral-8x7b', name: 'Mixtral 8x7B', provider: 'mistral', maxTokens: 8192, contextWindow: 32768, inputPrice: 0.6, outputPrice: 0.6, supportsStreaming: true, supportsImages: false },
+  { id: 'dewis', name: 'Free (dewis)', provider: 'mistral', maxTokens: 4096, contextWindow: 32768, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
+  { id: 'kc/openai/gpt-4.1', name: 'GPT-4.1', provider: 'mistral', maxTokens: 32768, contextWindow: 1000000, inputPrice: 2, outputPrice: 8, supportsStreaming: true, supportsImages: true },
+  { id: 'kc/openai/o3', name: 'o3', provider: 'mistral', maxTokens: 100000, contextWindow: 200000, inputPrice: 10, outputPrice: 40, supportsStreaming: true, supportsImages: true },
+  { id: 'kc/deepseek/deepseek-chat', name: 'DeepSeek Chat', provider: 'mistral', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.14, outputPrice: 0.28, supportsStreaming: true, supportsImages: false },
 ]
 
 export class MistralProvider extends BaseAIProvider {

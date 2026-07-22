@@ -2,16 +2,10 @@ import type { ChatMessage, AIModel } from '@/lib/types'
 import { BaseAIProvider, type ProviderResponse, type StreamCallback, type ChatOptions } from './base'
 
 const GROQ_MODELS: AIModel[] = [
-  { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'groq', maxTokens: 32768, contextWindow: 128000, inputPrice: 0.59, outputPrice: 0.79, supportsStreaming: true, supportsImages: false },
-  { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', provider: 'groq', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.05, outputPrice: 0.08, supportsStreaming: true, supportsImages: false },
-  { id: 'llama-3.2-1b-preview', name: 'Llama 3.2 1B', provider: 'groq', maxTokens: 8192, contextWindow: 8192, inputPrice: 0.02, outputPrice: 0.02, supportsStreaming: true, supportsImages: false },
-  { id: 'llama-3.2-3b-preview', name: 'Llama 3.2 3B', provider: 'groq', maxTokens: 8192, contextWindow: 8192, inputPrice: 0.06, outputPrice: 0.06, supportsStreaming: true, supportsImages: false },
-  { id: 'llama-3.2-11b-vision-preview', name: 'Llama 3.2 11B Vision', provider: 'groq', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.18, outputPrice: 0.18, supportsStreaming: true, supportsImages: true },
-  { id: 'llama-3.2-90b-vision-preview', name: 'Llama 3.2 90B Vision', provider: 'groq', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.9, outputPrice: 0.9, supportsStreaming: true, supportsImages: true },
-  { id: 'gemma2-9b-it', name: 'Gemma 2 9B', provider: 'groq', maxTokens: 8192, contextWindow: 8192, inputPrice: 0.2, outputPrice: 0.2, supportsStreaming: true, supportsImages: false },
-  { id: 'qwen-qwq-32b', name: 'Qwen QwQ 32B', provider: 'groq', maxTokens: 32768, contextWindow: 128000, inputPrice: 0.27, outputPrice: 0.35, supportsStreaming: true, supportsImages: false },
-  { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 Distill 70B', provider: 'groq', maxTokens: 32768, contextWindow: 128000, inputPrice: 0.59, outputPrice: 0.79, supportsStreaming: true, supportsImages: false },
-  { id: 'deepseek-r1-distill-llama-8b', name: 'DeepSeek R1 Distill 8B', provider: 'groq', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.05, outputPrice: 0.08, supportsStreaming: true, supportsImages: false },
+  { id: 'dewis', name: 'Free (dewis)', provider: 'groq', maxTokens: 4096, contextWindow: 32768, inputPrice: 0, outputPrice: 0, supportsStreaming: true, supportsImages: false },
+  { id: 'kc/deepseek/deepseek-chat', name: 'DeepSeek Chat', provider: 'groq', maxTokens: 8192, contextWindow: 128000, inputPrice: 0.14, outputPrice: 0.28, supportsStreaming: true, supportsImages: false },
+  { id: 'kc/openai/gpt-4.1', name: 'GPT-4.1', provider: 'groq', maxTokens: 32768, contextWindow: 1000000, inputPrice: 2, outputPrice: 8, supportsStreaming: true, supportsImages: true },
+  { id: 'kc/openai/o3', name: 'o3', provider: 'groq', maxTokens: 100000, contextWindow: 200000, inputPrice: 10, outputPrice: 40, supportsStreaming: true, supportsImages: true },
 ]
 
 export class GroqProvider extends BaseAIProvider {

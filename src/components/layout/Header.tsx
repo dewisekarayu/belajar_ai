@@ -225,8 +225,11 @@ export function Header() {
                   </Link>
                   <div className="my-1 border-t border-border" />
                   <button onClick={async () => {
-                    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-                    localStorage.clear()
+                    try {
+                      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+                    } catch {}
+                    localStorage.removeItem('user')
+                    localStorage.removeItem('token')
                     window.location.href = '/login'
                   }}
                     className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-error hover:bg-error/10 rounded-xl transition-colors">
