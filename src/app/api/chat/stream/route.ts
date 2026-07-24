@@ -21,14 +21,15 @@ function truncateMessages(messages: ChatMessage[], max: number = 30): ChatMessag
 
 function mapModel(model: string): string {
   const mapping: Record<string, string> = {
-    'kc/openai/gpt-4.1': 'dewis',
-    'kc/openai/o3': 'dewis',
+    'kc/openai/gpt-4.1': 'ag/gpt-oss-120b-medium',
+    'kc/openai/o3': 'ag/claude-opus-4-6-thinking',
     'kc/deepseek/deepseek-chat': 'dewis',
-    'kc/deepseek/deepseek-reasoner': 'dewis',
-    'kc/anthropic/claude-sonnet-4-20250514': 'dewis',
-    'kc/anthropic/claude-opus-4-20250514': 'dewis',
-    'kc/google/gemini-2.5-pro': 'dewis',
-    'kc/google/gemini-2.5-flash': 'dewis',
+    'kc/deepseek/deepseek-reasoner': 'ag/gemini-3-flash-agent',
+    'kc/anthropic/claude-sonnet-4-20250514': 'ag/claude-sonnet-4-6',
+    'cl/anthropic/claude-sonnet-4.6': 'ag/claude-sonnet-4-6',
+    'kc/anthropic/claude-opus-4-20250514': 'ag/claude-opus-4-6-thinking',
+    'kc/google/gemini-2.5-pro': 'ag/gemini-3.1-pro-low',
+    'kc/google/gemini-2.5-flash': 'ag/gemini-3.5-flash-low',
   }
   return mapping[model] || model
 }
