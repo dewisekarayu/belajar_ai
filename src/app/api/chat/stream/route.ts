@@ -246,7 +246,7 @@ export async function POST(request: Request) {
       const customStream = new ReadableStream({
         async start(controller) {
           try {
-            for await (const chunk of makeTransformedStream(result.streamBody)) {
+            for await (const chunk of makeTransformedStream(result.streamBody!)) {
               controller.enqueue(encoder.encode(chunk))
             }
           } catch (e: any) {
