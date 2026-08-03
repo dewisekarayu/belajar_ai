@@ -30,6 +30,8 @@ function mapModel(model: string): string {
     'kc/anthropic/claude-opus-4-20250514': 'ag/claude-opus-4-6-thinking',
     'kc/google/gemini-2.5-pro': 'ag/gemini-3.1-pro-low',
     'kc/google/gemini-2.5-flash': 'ag/gemini-3.5-flash-low',
+    'llama-3.3-70b-versatile': 'dewis',
+    'llama 3.3 70b versatile': 'dewis',
   }
   return mapping[model] || model
 }
