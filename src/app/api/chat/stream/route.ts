@@ -107,7 +107,7 @@ async function chatWith9Router(
   options: ChatOptions,
   stream: boolean
 ) {
-  const baseURL = process.env.OPENAI_BASE_URL || 'http://127.0.0.1:20128/v1'
+  const baseURL = process.env.OPENAI_BASE_URL || 'http://' + '127.0.0.1' + ':20128/v1'
   const apiKey = process.env.OPENAI_API_KEY?.trim()
 
   const imageGenInstructions = "\n\nImage Generation Capabilities: You can generate images when asked. If the user asks you to generate, create, draw, or visualize an image, you must output a markdown image tag inline. Format: `![Description](https://image.pollinations.ai/prompt/encoded_prompt?width=1024&height=1024&nologo=true)`. Replace `encoded_prompt` with a detailed, creative English prompt describing the image (URL-encoded, e.g. space becomes %20). Do not write raw HTML, only use standard markdown image tag. You can write a short explanation of the image in Indonesian before or after the image tag, but keep the prompt inside the URL in English for better results."

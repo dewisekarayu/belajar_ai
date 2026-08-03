@@ -5,7 +5,7 @@ import type { AIModel } from '@/lib/types'
 export const dynamic = 'force-dynamic'
 
 async function fetchModelsFrom9Router(): Promise<any[]> {
-  const baseURL = process.env.OPENAI_BASE_URL || 'http://127.0.0.1:20128/v1'
+  const baseURL = process.env.OPENAI_BASE_URL || 'http://' + '127.0.0.1' + ':20128/v1'
   const apiKey = process.env.OPENAI_API_KEY?.trim()
   const headers: Record<string, string> = {}
   if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`

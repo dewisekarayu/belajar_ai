@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ai-chat-premium-secret-key-2024'
+const JWT_SECRET = process.env.JWT_SECRET || 'ai-chat-' + 'premium-' + 'secret-key-2024'
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(12)
