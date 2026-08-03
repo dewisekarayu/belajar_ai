@@ -5,7 +5,11 @@ export async function GET() {
   try {
     const hasUrl = !!process.env.DATABASE_URL
     const urlLength = process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0
-    const urlPrefix = process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 15) : 'none'
+    const urlMasked = process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@') : 'none'
+
+    // Let's inspect the prisma client instance keys
+    const prismaKeys = Object.keys(prisma)
+    const isAdapterDefined = '_engine' in prisma && (prisma as any)._engine?.adapter !== undefined
 
     const userCount = await prisma.user.count()
 
@@ -15,7 +19,10 @@ export async function GET() {
       details: {
         hasUrl,
         urlLength,
-        urlPrefix,
+        urlMasked,
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL,
+        isAdapterDefined,
         userCount
       }
     })
@@ -29,6 +36,9 @@ export async function GET() {
         hasUrl: !!process.env.DATABASE_URL,
         urlLength: process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0,
         urlMasked: process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@') : 'none',
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL,
+        isAdapterDefined: '_engine' in prisma && (prisma as any)._engine?.adapter !== undefined,
         envKeys: Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('URL') || k.includes('PRISMA'))
       }
     }, { status: 500 })
