@@ -28,6 +28,7 @@ export async function GET() {
       details: {
         hasUrl: !!process.env.DATABASE_URL,
         urlLength: process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0,
+        urlMasked: process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@') : 'none',
         envKeys: Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('URL') || k.includes('PRISMA'))
       }
     }, { status: 500 })
