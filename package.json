@@ -1,0 +1,11 @@
+{
+  "name": "lumiox-9router",
+  "version": "1.0.0",
+  "description": "9Router backend for Lumiox AI Chat",
+  "scripts": {
+    "start": "9router"
+  },
+  "dependencies": {
+    "9router": "latest"
+  }
+}
