@@ -103,6 +103,62 @@ function parseMultimodalContent(content: string): any {
   return parts
 }
 
+async function searchWeb(query: string): Promise<string> {
+  try {
+    const apiRes = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    })
+    if (apiRes.ok) {
+      const data = await apiRes.json()
+      let results: string[] = []
+      if (data.AbstractText) {
+        results.push(data.AbstractText)
+      }
+      if (Array.isArray(data.RelatedTopics)) {
+        data.RelatedTopics.slice(0, 3).forEach((topic: any) => {
+          if (topic.Text) results.push(topic.Text)
+        })
+      }
+      if (results.length > 0) {
+        return results.map((r, i) => `[${i+1}] "${r}"`).join('\n')
+      }
+    }
+  } catch (e) {
+    console.error('DDG API failed', e)
+  }
+
+  try {
+    const htmlRes = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+      }
+    })
+    if (htmlRes.ok) {
+      const html = await htmlRes.text()
+      const snippets: string[] = []
+      const regex = /<a class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g
+      let match
+      while ((match = regex.exec(html)) !== null && snippets.length < 5) {
+        const cleanText = match[1]
+          .replace(/<[^>]*>/g, '')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .trim()
+        if (cleanText) snippets.push(cleanText)
+      }
+      if (snippets.length > 0) {
+        return snippets.map((s, i) => `[${i+1}] "${s}"`).join('\n')
+      }
+    }
+  } catch (e) {
+    console.error('DDG HTML failed', e)
+  }
+
+  return ''
+}
+
 async function chatWith9Router(
   messages: ChatMessage[],
   model: string,
@@ -113,7 +169,27 @@ async function chatWith9Router(
   const apiKey = process.env.OPENAI_API_KEY?.trim()
 
   const imageGenInstructions = "\n\nImage Generation Capabilities: You can generate images when asked. If the user asks you to generate, create, draw, or visualize an image, you must output a markdown image tag inline. Format: `![Description](https://image.pollinations.ai/prompt/encoded_prompt?width=1024&height=1024&nologo=true)`. Replace `encoded_prompt` with a detailed, creative English prompt describing the image (URL-encoded, e.g. space becomes %20). Do not write raw HTML, only use standard markdown image tag. You can write a short explanation of the image in Indonesian before or after the image tag, but keep the prompt inside the URL in English for better results."
-  const sys = (options.systemPrompt || DEFAULT_SYSTEM_PROMPT) + imageGenInstructions
+  
+  let searchContext = ''
+  const latestMessage = messages[messages.length - 1]?.content || ''
+  const triggerWords = [
+    'cuaca', 'berita', 'hari ini', 'sekarang', 'skor', 'saham', 
+    'search', 'weather', 'news', 'today', 'current', 'latest',
+    'info terbaru', 'siapa', 'siapa yang', 'presiden', 'pemilu',
+    'kurs', 'rupiah', 'dolar', 'harga emas', 'jadwal'
+  ]
+  const needsRealtime = typeof latestMessage === 'string' && 
+    triggerWords.some(word => latestMessage.toLowerCase().includes(word))
+
+  if (needsRealtime) {
+    const query = latestMessage.replace(/!\[.*?\]\(.*?\)/g, '').trim()
+    const results = await searchWeb(query)
+    if (results) {
+      searchContext = `\n\nReal-time Web Search Results for "${query}":\n${results}\n\nUse the real-time search results above to answer the user's query accurately. Cite the source number [1], [2], etc. when referencing the information.`
+    }
+  }
+
+  const sys = (options.systemPrompt || DEFAULT_SYSTEM_PROMPT) + imageGenInstructions + searchContext
   const formattedMessages = [
     { role: 'system', content: sys },
     ...messages.filter(m => m.role !== 'system').map(m => ({
