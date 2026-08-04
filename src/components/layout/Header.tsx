@@ -123,8 +123,11 @@ export function Header() {
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-sm font-semibold text-text-primary truncate flex items-center gap-2">
-            {session?.title || t('chatPremium')}
+          <h1 className="text-sm font-semibold text-text-primary/80 truncate flex items-center gap-2">
+            {!session && (
+              <img src="/logo.png" alt="logo" className="w-5 h-5 object-contain" />
+            )}
+            {session?.title || 'lumiox'}
             {session && <Sparkles className="w-3 h-3 text-accent-500/60 hidden sm:inline" />}
           </h1>
           <p className="text-xs text-text-secondary flex items-center gap-1.5">

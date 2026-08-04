@@ -28,7 +28,7 @@ export const TRANSLATIONS = {
     failedClearHistory: 'Failed to clear history',
     
     // Header & Dashboard
-    chatPremium: 'AI Chat Premium',
+    chatPremium: 'lumiox',
     connectionFailed: 'Connection Failed',
     cannotReachServer: 'Cannot reach the server. Check your internet connection.',
     retry: 'Retry',

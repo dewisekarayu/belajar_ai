@@ -4,7 +4,7 @@ import { NotificationProvider } from '@/components/notification/Toast'
 import ThemeProvider from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
-  title: 'AI Chat Premium',
+  title: 'lumiox',
   description: 'Premium multi-provider AI Chat application with a modern, elegant interface.',
 }
 

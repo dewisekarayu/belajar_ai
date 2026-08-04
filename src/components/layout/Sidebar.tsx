@@ -239,12 +239,11 @@ export function Sidebar() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 h-14 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-soft">
-                <MessageSquarePlus className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center">
+                <img src="/logo.png" alt="lumiox logo" className="w-full h-full object-contain" />
               </div>
               <div>
-                <span className="font-semibold text-sm text-text-primary">AI Chat</span>
-                <p className="text-[10px] text-text-secondary/50">Premium</p>
+                <span className="font-semibold text-lg text-text-primary/70 tracking-wide">lumiox</span>
               </div>
             </div>
             <button onClick={() => setSidebarOpen(false)} className="p-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-lg transition-colors">

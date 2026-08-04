@@ -44,10 +44,10 @@ export default function LandingPage() {
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'glass shadow-soft' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-soft group-hover:shadow-md transition-shadow">
-              <MessageSquare className="w-4.5 h-4.5 text-white" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/logo.png" alt="lumiox logo" className="w-full h-full object-contain" />
             </div>
-            <span className="font-semibold text-lg text-text-primary">AI Chat</span>
+            <span className="font-semibold text-xl text-text-primary/70 tracking-wide">lumiox</span>
           </Link>
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
@@ -82,7 +82,7 @@ export default function LandingPage() {
 
         <div className="max-w-5xl mx-auto text-center relative z-10 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent-500/10 backdrop-blur-sm rounded-full text-sm text-accent-600 dark:text-accent-400 font-medium mb-6 border border-accent-500/20">
-            <Sparkles className="w-4 h-4" /> Premium AI Chat Experience
+            <Sparkles className="w-4 h-4" /> Premium lumiox Experience
           </div>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-text-primary mb-6 leading-[1.1] tracking-tight">
             Chat with AI,
@@ -178,7 +178,7 @@ export default function LandingPage() {
       <section className="py-20 px-6 border-y border-border bg-accent-600/[0.02]">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4 tracking-tight">Ready to Get Started?</h2>
-          <p className="text-lg text-text-secondary mb-8">Join thousands of users who rely on AI Chat for their daily workflow.</p>
+          <p className="text-lg text-text-secondary mb-8">Join thousands of users who rely on lumiox for their daily workflow.</p>
           <Link href={isLoggedIn ? '/chat' : '/register'}
             className="relative inline-flex items-center gap-2 px-8 py-4 bg-accent-600 text-white font-medium rounded-2xl hover:bg-accent-700 transition-all shadow-soft hover:shadow-lg hover:shadow-accent-500/20 active:scale-[0.98] group overflow-hidden">
             <span className="relative z-10">{isLoggedIn ? 'Open Chat' : 'Create Free Account'}</span>
@@ -192,12 +192,12 @@ export default function LandingPage() {
       <footer className="py-10 px-6 bg-surface/50">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
-              <MessageSquare className="w-3.5 h-3.5 text-white" />
+            <div className="w-7 h-7 flex items-center justify-center">
+              <img src="/logo.png" alt="lumiox logo" className="w-full h-full object-contain" />
             </div>
-            <span className="text-sm font-semibold text-text-primary">AI Chat Premium</span>
+            <span className="text-sm font-semibold text-text-primary/70 tracking-wide">lumiox</span>
           </div>
-          <p className="text-xs text-text-secondary">© 2026 AI Chat Premium. Built with modern technology.</p>
+          <p className="text-xs text-text-secondary">© 2026 lumiox. Built with modern technology.</p>
         </div>
       </footer>
     </div>

@@ -74,13 +74,23 @@ export function EmptyState() {
       >
         {/* Logo */}
         <motion.div
-          className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-accent-600 flex items-center justify-center shadow-soft-lg"
+          className="w-24 h-24 mx-auto mb-2 flex items-center justify-center"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <MessageSquare className="w-8 h-8 text-white" />
+          <img src="/logo.png" alt="lumiox logo" className="w-full h-full object-contain" />
         </motion.div>
+
+        {/* Title */}
+        <motion.h1
+          className="text-3xl font-bold tracking-tight text-text-primary/70 mb-2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
+          lumiox
+        </motion.h1>
 
         {/* Greeting */}
         <h2 className="text-2xl font-semibold text-text-primary mb-1.5">
