@@ -180,10 +180,6 @@ export function Sidebar() {
             onClick={e => e.stopPropagation()} />
         ) : (
           <>
-            <span className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0 border border-transparent"
-              style={{ backgroundColor: (pinfo?.color || '#71717A') + '15', color: pinfo?.color || '#71717A' }}>
-              {session.provider[0].toUpperCase()}
-            </span>
             <span className="flex-1 truncate text-[13px] leading-snug font-medium">{session.title}</span>
             {session.pinned && <Pin className="w-3 h-3 text-accent-500 flex-shrink-0 opacity-60" />}
             {!isConfigured && <span className="text-[9px] px-1.5 py-0.5 bg-warning/10 text-warning rounded-full font-medium">{t('noKey')}</span>}
