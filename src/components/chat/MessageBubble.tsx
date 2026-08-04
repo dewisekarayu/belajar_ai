@@ -255,7 +255,7 @@ export function MessageBubble({ message, onRetry, onEdit, onDelete }: { message:
   }
 
   return (
-    <div className={cn('flex gap-3 animate-fade-in items-start', isUser ? 'flex-row-reverse' : '')}>
+    <div className={cn('group flex gap-3 animate-fade-in items-start', isUser ? 'flex-row-reverse' : '')}>
       {isAssistant && (
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center flex-shrink-0 shadow-soft">
           <Bot className="w-4 h-4 text-white" />
