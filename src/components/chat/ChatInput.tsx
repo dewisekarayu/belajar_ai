@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useChatStore, useSettingsStore } from '@/lib/store'
 import { useTranslation } from '@/lib/store/language'
+import { cn } from '@/lib/utils'
 import { Send, Paperclip, Square, Image, FileText, X, Mic } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { notifyError } from '@/components/notification/Toast'
@@ -18,6 +19,69 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
   const { addMessage, updateLastAssistant, sessions } = useChatStore()
   const settings = useSettingsStore()
   const { t } = useTranslation()
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      if (SpeechRecognition) {
+        const rec = new SpeechRecognition()
+        rec.continuous = true
+        rec.interimResults = false
+        
+        rec.onresult = (event: any) => {
+          let finalTranscript = ''
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript
+            }
+          }
+          if (finalTranscript) {
+            setInput(prev => prev + (prev ? ' ' : '') + finalTranscript)
+          }
+        }
+        
+        rec.onerror = (event: any) => {
+          console.error('Speech recognition error', event)
+          setIsListening(false)
+        }
+        
+        rec.onend = () => {
+          setIsListening(false)
+        }
+        
+        recognitionRef.current = rec
+      }
+    }
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+    }
+  }, [])
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      notifyError('Fitur Voice Input (Speech-to-Text) tidak didukung oleh browser Anda.')
+      return
+    }
+    
+    if (isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+    } else {
+      const currentLanguage = localStorage.getItem('language') || 'en'
+      recognitionRef.current.lang = currentLanguage === 'id' ? 'id-ID' : 'en-US'
+      
+      try {
+        recognitionRef.current.start()
+        setIsListening(true)
+      } catch (err) {
+        console.error('Failed to start recognition', err)
+      }
+    }
+  }
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
@@ -343,6 +407,12 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
               </button>
             ) : (
               <>
+                <button type="button" onClick={toggleListening}
+                  className={cn("p-2 rounded-xl transition-colors",
+                    isListening ? "bg-red-500/10 text-red-500 hover:text-red-600 animate-pulse" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.05] text-text-secondary hover:text-text-primary"
+                  )} title={isListening ? "Listening..." : "Voice Input"}>
+                  <Mic className="w-4 h-4" />
+                </button>
                 <label className="p-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-xl transition-colors cursor-pointer text-text-secondary hover:text-text-primary">
                   <Paperclip className="w-4 h-4" />
                   <input type="file" className="hidden" multiple onChange={e => {

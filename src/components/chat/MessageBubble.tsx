@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Copy, Check, Bot, User, AlertTriangle, RefreshCw, Shield, CreditCard, Key, WifiOff, Edit3, X, Trash2, ExternalLink, Download } from 'lucide-react'
+import { Copy, Check, Bot, User, AlertTriangle, RefreshCw, Shield, CreditCard, Key, WifiOff, Edit3, X, Trash2, ExternalLink, Download, Volume2, VolumeX } from 'lucide-react'
 import type { DBMessage } from '@/lib/store'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -79,7 +79,52 @@ export function MessageBubble({ message, onRetry, onEdit, onDelete }: { message:
   const [copied, setCopied] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(parsedContent ? parsedContent.text : message.content)
+  const [isPlaying, setIsPlaying] = useState(false)
   const editRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
+
+  const toggleTTS = () => {
+    if (typeof window === 'undefined') return
+
+    if (isPlaying) {
+      window.speechSynthesis.cancel()
+      setIsPlaying(false)
+    } else {
+      window.speechSynthesis.cancel()
+      
+      const textToSpeak = parsedContent ? parsedContent.text : message.content
+      const cleanText = textToSpeak
+        .replace(/!\[.*?\]\(.*?\)/g, '')
+        .replace(/\[.*?\]\(.*?\)/g, '')
+        .replace(/`{3}[\s\S]*?`{3}/g, '')
+        .replace(/`.*?`/g, '')
+        .replace(/[#*_\-~>]/g, '')
+        .trim()
+
+      if (!cleanText) return
+
+      const utterance = new SpeechSynthesisUtterance(cleanText)
+      const isIndo = /\b(adalah|dan|saya|yang|untuk|dengan|bisa|ini|itu|ada)\b/i.test(cleanText)
+      utterance.lang = isIndo ? 'id-ID' : 'en-US'
+
+      utterance.onend = () => {
+        setIsPlaying(false)
+      }
+      utterance.onerror = () => {
+        setIsPlaying(false)
+      }
+
+      setIsPlaying(true)
+      window.speechSynthesis.speak(utterance)
+    }
+  }
 
   // Keep editText in sync when content changes
   useEffect(() => {
@@ -370,6 +415,12 @@ export function MessageBubble({ message, onRetry, onEdit, onDelete }: { message:
               className={cn('p-1.5 rounded-lg transition-colors', isUser ? 'hover:bg-white/10 text-white/60 hover:text-white' : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.05]')} title="Copy">
               {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
+            {isAssistant && (
+              <button onClick={toggleTTS}
+                className="p-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-lg transition-colors text-text-secondary" title={isPlaying ? "Stop Voice" : "Voice Output"}>
+                {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-accent-500 animate-pulse" /> : <Volume2 className="w-3.5 h-3.5" />}
+              </button>
+            )}
             {isUser && onEdit && (
               <button onClick={() => { setEditText(parsedContent ? parsedContent.text : message.content); setIsEditing(true) }}
                 className="p-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-lg transition-colors" title="Edit">

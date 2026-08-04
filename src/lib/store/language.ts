@@ -37,6 +37,7 @@ export const TRANSLATIONS = {
     brainstormIdeas: 'Brainstorm ideas',
     typeMessage: 'Type a message...',
     typeMessagePlaceholder: 'Type a message... (Shift+Enter for new line)',
+    chatExported: 'Chat exported successfully',
     
     // Dashboard Stats & Charts
     dashboardTitle: 'Dashboard',
@@ -189,6 +190,7 @@ export const TRANSLATIONS = {
     brainstormIdeas: 'Brainstorm ide',
     typeMessage: 'Ketik pesan...',
     typeMessagePlaceholder: 'Ketik pesan... (Shift+Enter untuk baris baru)',
+    chatExported: 'Percakapan berhasil diekspor',
     
     // Dashboard Stats & Charts
     dashboardTitle: 'Dashboard',
@@ -278,10 +280,10 @@ export const TRANSLATIONS = {
     searchChatsAction: 'Cari chat',
     
     // Settings Privacy & About
-    privacyData: 'Privasi & Data',
+    privacyData: 'Privacy & Data',
     privacyDataDesc: 'Kelola data dan privasi Anda',
     exportData: 'Ekspor Data',
-    exportDataDesc: 'Unduh semua riwayat chat Anda sebagai file JSON',
+    exportDataDesc: 'Unduh seluruh riwayat chat Anda sebagai file JSON',
     export: 'Ekspor',
     clearAllHistory: 'Hapus Semua Riwayat',
     clearAllHistoryDesc: 'Hapus semua sesi chat secara permanen',

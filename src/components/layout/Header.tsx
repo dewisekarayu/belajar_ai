@@ -4,7 +4,7 @@ import { useChatStore, useSettingsStore, useUIStore } from '@/lib/store'
 import { useTranslation } from '@/lib/store/language'
 import { PROVIDER_INFO, getModelsForProvider } from '@/lib/providers'
 import type { AIModel } from '@/lib/types'
-import { Menu, Moon, Sun, ChevronDown, RefreshCw, AlertCircle, User, Settings, LogOut, Sparkles } from 'lucide-react'
+import { Menu, Moon, Sun, ChevronDown, RefreshCw, AlertCircle, User, Settings, LogOut, Sparkles, Download } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
@@ -22,6 +22,30 @@ export function Header() {
   const [modelError, setModelError] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
+
+  const handleExportChat = () => {
+    if (!session || session.messages.length === 0) return
+    const text = session.messages
+      .map(m => `**${m.role === 'user' ? 'You' : 'AI'}:** ${m.content}`)
+      .join('\n\n')
+    const header = `# ${session.title}\n\n`
+    const fileContent = header + text
+    const blob = new Blob([fileContent], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const filename = (session.title || 'chat-export')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') + '.md'
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    const { notifySuccess } = require('@/components/notification/Toast')
+    notifySuccess(t('chatExported') || 'Chat exported successfully')
+  }
 
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
@@ -191,6 +215,14 @@ export function Header() {
             )}
           </AnimatePresence>
         </div>
+
+        {session && session.messages.length > 0 && (
+          <button onClick={handleExportChat}
+            className="p-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] rounded-xl transition-colors text-text-secondary hover:text-text-primary"
+            title="Export to Markdown">
+            <Download className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Theme Toggle */}
         <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
