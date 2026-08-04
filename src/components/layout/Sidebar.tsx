@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useChatStore, useSettingsStore, useUIStore } from '@/lib/store'
 import { useTranslation } from '@/lib/store/language'
 import { PROVIDER_INFO } from '@/lib/providers'
@@ -100,7 +101,10 @@ export function Sidebar() {
         model = models[0]?.id || defaultModel
       }
       const sessionId = await createSession(provider, model)
-      if (sessionId) router.push('/chat')
+      if (sessionId) {
+        if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false)
+        router.push('/chat')
+      }
     } catch (error) {
       console.error('Failed to create new chat:', error)
     } finally {
@@ -160,7 +164,11 @@ export function Sidebar() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -4 }}
         transition={{ duration: 0.15 }}
-        onClick={() => { setActiveSession(session.id); router.push('/chat') }}
+        onClick={() => {
+          setActiveSession(session.id)
+          if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false)
+          router.push('/chat')
+        }}
         className={cn('group relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150',
           isActive
             ? 'bg-accent-500/10 border border-accent-500/15 text-text-primary shadow-sm'
@@ -289,12 +297,14 @@ export function Sidebar() {
               {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
               {theme === 'light' ? t('darkMode') : t('lightMode')}
             </button>
-            <a href="/settings" className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
+            <Link href="/settings" onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false) }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
               <Settings className="w-4 h-4" /> {t('settings')}
-            </a>
-            <a href="/profile" className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
+            </Link>
+            <Link href="/profile" onClick={() => { if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false) }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
               <User className="w-4 h-4" /> {t('profile')}
-            </a>
+            </Link>
             <button onClick={handleLogout}
               className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-error hover:bg-error/10 rounded-xl transition-colors">
               <LogOut className="w-4 h-4" /> {t('logout')}

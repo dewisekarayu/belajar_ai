@@ -19,6 +19,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
   }, [])
 
+  // Auto-close sidebar on mobile on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setSidebarOpen(false)
+    }
+  }, [setSidebarOpen])
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])

@@ -166,16 +166,16 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="flex flex-col md:flex-row h-full overflow-hidden">
       {/* Sidebar nav */}
-      <div className="w-56 border-r border-border/60 bg-sidebar/60 backdrop-blur-xl p-4 flex-shrink-0">
-        <h2 className="text-lg font-bold tracking-tight text-text-primary mb-5 px-2">{t('settings')}</h2>
-        <nav className="space-y-0.5">
+      <div className="w-full md:w-56 border-b md:border-b-0 md:border-r border-border/60 bg-sidebar/60 backdrop-blur-xl p-4 flex-shrink-0">
+        <h2 className="text-lg font-bold tracking-tight text-text-primary mb-3 md:mb-5 px-2">{t('settings')}</h2>
+        <nav className="flex md:flex-col overflow-x-auto md:overflow-x-visible gap-1.5 md:space-y-0.5 pb-2 md:pb-0 scrollbar-none">
           {menuItems.map(item => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className="relative flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm transition-all"
+              className="relative flex items-center gap-2.5 w-auto md:w-full px-3.5 py-2 md:py-2.5 rounded-xl text-sm transition-all whitespace-nowrap flex-shrink-0"
             >
               {activeTab === item.id && (
                 <motion.div
@@ -192,7 +192,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-4 md:p-8">
         <div className="max-w-2xl">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} variants={tabVariants} initial="hidden" animate="show" exit="exit">
