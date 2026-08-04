@@ -6,6 +6,11 @@ import ThemeProvider from '@/components/ThemeProvider'
 export const metadata: Metadata = {
   title: 'lumiox',
   description: 'Premium multi-provider AI Chat application with a modern, elegant interface.',
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
 }
 
 export default function RootLayout({
