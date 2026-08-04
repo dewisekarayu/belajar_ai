@@ -163,7 +163,9 @@ async function chatWith9Router(
   messages: ChatMessage[],
   model: string,
   options: ChatOptions,
-  stream: boolean
+  stream: boolean,
+  locationContext: string,
+  city: string | null
 ) {
   const baseURL = process.env.OPENAI_BASE_URL || 'http://' + '127.0.0.1' + ':20128/v1'
   const apiKey = process.env.OPENAI_API_KEY?.trim()
@@ -176,20 +178,24 @@ async function chatWith9Router(
     'cuaca', 'berita', 'hari ini', 'sekarang', 'skor', 'saham', 
     'search', 'weather', 'news', 'today', 'current', 'latest',
     'info terbaru', 'siapa', 'siapa yang', 'presiden', 'pemilu',
-    'kurs', 'rupiah', 'dolar', 'harga emas', 'jadwal'
+    'kurs', 'rupiah', 'dolar', 'harga emas', 'jadwal',
+    'hujan', 'kapan', 'gempa', 'banjir', 'macet', 'jam berapa', 'dimana'
   ]
   const needsRealtime = typeof latestMessage === 'string' && 
     triggerWords.some(word => latestMessage.toLowerCase().includes(word))
 
   if (needsRealtime) {
-    const query = latestMessage.replace(/!\[.*?\]\(.*?\)/g, '').trim()
+    let query = latestMessage.replace(/!\[.*?\]\(.*?\)/g, '').trim()
+    if (city && (query.toLowerCase().includes('disini') || query.toLowerCase().includes('di sini'))) {
+      query += ` di ${city}`
+    }
     const results = await searchWeb(query)
     if (results) {
       searchContext = `\n\nReal-time Web Search Results for "${query}":\n${results}\n\nUse the real-time search results above to answer the user's query accurately. Cite the source number [1], [2], etc. when referencing the information.`
     }
   }
 
-  const sys = (options.systemPrompt || DEFAULT_SYSTEM_PROMPT) + imageGenInstructions + searchContext
+  const sys = (options.systemPrompt || DEFAULT_SYSTEM_PROMPT) + imageGenInstructions + (locationContext ? `\n\n${locationContext}` : '') + searchContext
   const formattedMessages = [
     { role: 'system', content: sys },
     ...messages.filter(m => m.role !== 'system').map(m => ({
@@ -317,6 +323,10 @@ export async function POST(request: Request) {
   try {
     const { model, messages, stream, options } = await request.json()
 
+    const city = request.headers.get('x-vercel-ip-city')
+    const region = request.headers.get('x-vercel-ip-country-region')
+    const locationContext = city ? `User Location Context: The user is currently located in ${city}, ${region || ''}. Use this to answer queries about "here" (disini).` : ''
+
     const finalSystemPrompt = options?.systemPrompt || DEFAULT_SYSTEM_PROMPT
     const truncatedMessages = truncateMessages(messages)
 
@@ -324,7 +334,9 @@ export async function POST(request: Request) {
       truncatedMessages,
       model,
       { ...(options || {}), systemPrompt: finalSystemPrompt },
-      stream
+      stream,
+      locationContext,
+      city
     )
 
     if (stream && result.streamBody) {
