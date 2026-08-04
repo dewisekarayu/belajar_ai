@@ -124,11 +124,19 @@ async function chatWith9Router(
 
   const mappedModel = mapModel(model)
 
+  // Cap max_tokens to prevent 400 bad request errors on models with lower completion limits
+  let maxCompletionTokens = options.maxTokens || 4096
+  if (mappedModel === 'dewis' || mappedModel.includes('llama')) {
+    if (maxCompletionTokens > 4096) maxCompletionTokens = 4096
+  } else if (maxCompletionTokens > 8192) {
+    maxCompletionTokens = 8192
+  }
+
   const payload = {
     model: mappedModel || 'dewis',
     messages: formattedMessages,
     temperature: options.temperature ?? 0.7,
-    max_tokens: options.maxTokens || 4096,
+    max_tokens: maxCompletionTokens,
     top_p: options.topP ?? 1,
     stream,
   }
