@@ -3,10 +3,12 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChatStore, useSettingsStore } from '@/lib/store'
+import { useTranslation } from '@/lib/store/language'
 import { MessageSquare, Brain, Zap, Globe, Sparkles, Send, Code, BookOpen, Lightbulb } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export function EmptyState() {
+  const { t } = useTranslation()
   const { createSession, providerStatus } = useChatStore()
   const { defaultProvider, defaultModel } = useSettingsStore()
   const router = useRouter()
@@ -15,16 +17,16 @@ export function EmptyState() {
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 18) return 'Good afternoon'
-    return 'Good evening'
-  }, [])
+    if (hour < 12) return t('goodMorning')
+    if (hour < 18) return t('goodAfternoon')
+    return t('goodEvening')
+  }, [t])
 
   const suggestions = [
-    { text: 'Explain a concept', icon: Brain, desc: 'Break down complex topics' },
-    { text: 'Write some code', icon: Code, desc: 'Generate code snippets' },
-    { text: 'Summarize a document', icon: BookOpen, desc: 'Condense long content' },
-    { text: 'Brainstorm ideas', icon: Lightbulb, desc: 'Creative thinking partner' },
+    { text: t('explainConcept'), icon: Brain, desc: t('explainConceptDesc') },
+    { text: t('writeSomeCode'), icon: Code, desc: t('writeSomeCodeDesc') },
+    { text: t('summarizeDocument'), icon: BookOpen, desc: t('summarizeDocumentDesc') },
+    { text: t('brainstormIdeas'), icon: Lightbulb, desc: t('brainstormIdeasDesc') },
   ]
 
   const handleCreateAndSend = async (message?: string) => {
@@ -85,7 +87,7 @@ export function EmptyState() {
           {greeting}!
         </h2>
         <p className="text-text-secondary text-sm mb-8">
-          How can I help you today?
+          {t('howCanIHelp')}
         </p>
 
         {/* Center input */}
@@ -94,7 +96,7 @@ export function EmptyState() {
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Ask me anything..."
+            placeholder={t('askAnything')}
             disabled={isCreating}
             className="w-full bg-surface border border-border rounded-2xl pl-5 pr-14 py-4 text-sm outline-none focus:border-accent-500 transition-all duration-200 shadow-soft placeholder:text-text-secondary/40 disabled:opacity-50"
           />

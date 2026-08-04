@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useChatStore } from '@/lib/store'
+import { useTranslation } from '@/lib/store/language'
 import { User, Mail, LogOut, MessageSquare, AtSign, Calendar, Edit3, Check, X, Save, Sparkles, Shield, BadgeCheck, Lock } from 'lucide-react'
 import { notifySuccess, notifyError } from '@/components/notification/Toast'
 
@@ -16,6 +17,7 @@ const itemVariants = {
 }
 
 export default function ProfilePage() {
+  const { t, language } = useTranslation()
   const { sessions } = useChatStore()
   const [user, setUser] = useState<any>(null)
   const [loadingUser, setLoadingUser] = useState(true)
@@ -58,16 +60,16 @@ export default function ProfilePage() {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.message || 'Failed to update')
+        throw new Error(err.message || t('failedUpdateProfile'))
       }
       const data = await res.json()
       setUser(data.user)
       setEditName(data.user?.name || '')
       setEditUsername(data.user?.username || '')
       setEditing(false)
-      notifySuccess('Profile updated successfully')
+      notifySuccess(t('profileUpdated'))
     } catch (e: any) {
-      notifyError(e.message || 'Failed to update profile')
+      notifyError(e.message || t('failedUpdateProfile'))
     } finally {
       setSaving(false)
     }
@@ -84,7 +86,7 @@ export default function ProfilePage() {
     : null
 
   const memberSince = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+    ? new Date(user.createdAt).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { year: 'numeric', month: 'long' })
     : null
 
   return (
@@ -95,13 +97,13 @@ export default function ProfilePage() {
       <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-2xl mx-auto">
         <motion.div variants={itemVariants} className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">Profile</h1>
-            <p className="text-sm text-text-secondary mt-1">Manage your account information</p>
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary">{t('profile')}</h1>
+            <p className="text-sm text-text-secondary mt-1">{t('manageAccountInfo')}</p>
           </div>
           {!editing ? (
             <button onClick={() => setEditing(true)}
               className="flex items-center gap-1.5 px-4 py-2 bg-accent-500/10 text-accent-600 dark:text-accent-400 rounded-xl text-sm font-medium hover:bg-accent-500/15 transition-all border border-accent-500/20">
-              <Edit3 className="w-3.5 h-3.5" /> Edit Profile
+              <Edit3 className="w-3.5 h-3.5" /> {t('editProfile')}
             </button>
           ) : (
             <div className="flex items-center gap-2">
@@ -110,11 +112,11 @@ export default function ProfilePage() {
                 {saving ? (
                   <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
                 ) : <Save className="w-3.5 h-3.5" />}
-                Save
+                {t('save')}
               </button>
               <button onClick={handleCancelEdit}
                 className="flex items-center gap-1.5 px-4 py-2 bg-black/[0.05] dark:bg-white/[0.06] text-text-secondary rounded-xl text-sm font-medium hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-all">
-                <X className="w-3.5 h-3.5" /> Cancel
+                <X className="w-3.5 h-3.5" /> {t('cancel')}
               </button>
             </div>
           )}
@@ -171,7 +173,7 @@ export default function ProfilePage() {
                     )}
                     {memberSince && (
                       <p className="text-xs text-text-secondary/70 flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />Member since {memberSince}
+                        <Calendar className="w-3 h-3" />{t('memberSinceLabel')} {memberSince}
                       </p>
                     )}
                   </div>
@@ -184,9 +186,9 @@ export default function ProfilePage() {
         {/* Stats */}
         <motion.div variants={itemVariants} className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: 'Total Chats', value: sessions.length, icon: MessageSquare },
-            { label: 'Messages', value: totalMessages, icon: Sparkles },
-            { label: 'Plan', value: 'Free', icon: Shield },
+            { label: t('totalChatsLabel'), value: sessions.length, icon: MessageSquare },
+            { label: t('messagesLabel'), value: totalMessages, icon: Sparkles },
+            { label: t('plan'), value: 'Free', icon: Shield },
           ].map((stat, i) => (
             <div key={i} className="premium-card p-4 rounded-2xl text-center">
               <div className="w-9 h-9 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center mx-auto mb-2.5">
@@ -202,15 +204,15 @@ export default function ProfilePage() {
         <motion.div variants={itemVariants} className="premium-card rounded-2xl mb-6 overflow-hidden">
           <div className="px-5 py-4 border-b border-border/60">
             <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-              <Lock className="w-4 h-4 text-accent-500" /> Account Details
+              <Lock className="w-4 h-4 text-accent-500" /> {t('accountDetails')}
             </h3>
           </div>
           <div className="divide-y divide-border/40">
             {[
-              { label: 'Name', value: user?.name || '-' },
-              { label: 'Username', value: user?.username || '-' },
-              { label: 'Email', value: user?.email || '-' },
-              { label: 'Member Since', value: memberSince || '-' },
+              { label: t('name'), value: user?.name || '-' },
+              { label: t('username'), value: user?.username || '-' },
+              { label: t('email'), value: user?.email || '-' },
+              { label: t('memberSince'), value: memberSince || '-' },
             ].map((item, i) => (
               <div key={i} className="flex items-center justify-between px-5 py-3">
                 <span className="text-sm text-text-secondary">{item.label}</span>
@@ -224,7 +226,7 @@ export default function ProfilePage() {
         <motion.div variants={itemVariants} className="flex items-center gap-3">
           <button onClick={handleLogout}
             className="flex items-center gap-2 px-5 py-2.5 text-error bg-error/10 border border-error/10 rounded-xl hover:bg-error/15 hover:shadow-soft transition-all text-sm font-medium">
-            <LogOut className="w-4 h-4" /> Sign Out
+            <LogOut className="w-4 h-4" /> {t('signOut')}
           </button>
         </motion.div>
       </motion.div>

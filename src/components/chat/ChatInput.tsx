@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useChatStore, useSettingsStore } from '@/lib/store'
+import { useTranslation } from '@/lib/store/language'
 import { Send, Paperclip, Square, Image, FileText, X, Mic } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { notifyError } from '@/components/notification/Toast'
@@ -16,6 +17,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
   const retryTextRef = useRef<string>('')
   const { addMessage, updateLastAssistant, sessions } = useChatStore()
   const settings = useSettingsStore()
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
@@ -330,7 +332,7 @@ export function ChatInput({ sessionId, autoFocus }: { sessionId: string; autoFoc
         <input {...getInputProps()} />
         <div className="relative flex items-end gap-2 bg-background border border-border rounded-2xl focus-within:border-accent-500/50 focus-within:shadow-soft transition-all duration-150 px-4 py-2">
           <textarea ref={textareaRef} data-chat-input value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
-            placeholder="Type a message... (Shift+Enter for new line)" rows={1}
+            placeholder={t('typeMessagePlaceholder')} rows={1}
             className="flex-1 resize-none bg-transparent text-sm text-text-primary outline-none py-1.5 placeholder:text-text-secondary/40"
             style={{ minHeight: '28px', maxHeight: '200px' }} />
           <div className="flex items-center gap-1.5 flex-shrink-0">

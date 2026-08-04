@@ -4,11 +4,20 @@ import { useEffect } from 'react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { useChatStore, useUIStore } from '@/lib/store'
+import { useLanguageStore } from '@/lib/store/language'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { sidebarOpen, setSidebarOpen } = useChatStore()
   const { theme } = useUIStore()
+
+  // Load language from localStorage
+  useEffect(() => {
+    const lang = localStorage.getItem('language')
+    if (lang === 'id' || lang === 'en') {
+      useLanguageStore.setState({ language: lang })
+    }
+  }, [])
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')

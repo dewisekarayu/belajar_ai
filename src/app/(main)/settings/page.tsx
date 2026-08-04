@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useChatStore, useSettingsStore, useUIStore } from '@/lib/store'
+import { useTranslation, useLanguageStore } from '@/lib/store/language'
 import { PROVIDER_INFO } from '@/lib/providers'
 import type { AIModel } from '@/lib/types'
 import {
@@ -10,6 +11,15 @@ import {
   RefreshCw, Keyboard, Shield, Trash2, Download, Bell
 } from 'lucide-react'
 import { notifySuccess } from '@/components/notification/Toast'
+
+const getShortcutAction = (action: string, t: any) => {
+  if (action === 'Send message') return t('sendMessage')
+  if (action === 'New line') return t('newLine')
+  if (action === 'New chat') return t('newChatAction')
+  if (action === 'Toggle sidebar') return t('toggleSidebarAction')
+  if (action === 'Search chats') return t('searchChatsAction')
+  return action
+}
 
 const menuItems = [
   { id: 'general', icon: Settings, label: 'General' },
@@ -53,8 +63,9 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 }
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
   const { defaultProvider, defaultModel, temperature, maxTokens, topP, streaming, systemPrompt, updateSettings, loadSettings } = useSettingsStore()
-  const { providerStatus, setProviderStatus } = useChatStore()
+  const [providerStatus, setProviderStatus] = useState<Record<string, boolean>>({})
   const { theme: uiTheme, setTheme: setUITheme } = useUIStore()
   const [activeTab, setActiveTab] = useState('general')
   const [models, setModels] = useState<AIModel[]>([])
@@ -119,8 +130,9 @@ export default function SettingsPage() {
 
   const handleLanguageChange = (lang: string) => {
     setLanguageState(lang)
+    useLanguageStore.setState({ language: lang as any })
     localStorage.setItem('language', lang)
-    notifySuccess('Language updated')
+    notifySuccess(t('languageUpdated'))
   }
 
   const handleNotificationChange = (key: string, value: boolean) => {
@@ -157,7 +169,7 @@ export default function SettingsPage() {
     <div className="flex h-full">
       {/* Sidebar nav */}
       <div className="w-56 border-r border-border/60 bg-sidebar/60 backdrop-blur-xl p-4 flex-shrink-0">
-        <h2 className="text-lg font-bold tracking-tight text-text-primary mb-5 px-2">Settings</h2>
+        <h2 className="text-lg font-bold tracking-tight text-text-primary mb-5 px-2">{t('settings')}</h2>
         <nav className="space-y-0.5">
           {menuItems.map(item => (
             <button
@@ -173,7 +185,7 @@ export default function SettingsPage() {
                 />
               )}
               <item.icon className={cn('w-4 h-4 relative z-10', activeTab === item.id ? 'text-accent-600 dark:text-accent-400' : 'text-text-secondary')} />
-              <span className={cn('relative z-10 text-sm', activeTab === item.id ? 'text-accent-600 dark:text-accent-400 font-medium' : 'text-text-secondary')}>{item.label}</span>
+              <span className={cn('relative z-10 text-sm', activeTab === item.id ? 'text-accent-600 dark:text-accent-400 font-medium' : 'text-text-secondary')}>{item.id === 'provider' ? t('aiProvider') : t(item.id as any)}</span>
             </button>
           ))}
         </nav>
@@ -189,8 +201,8 @@ export default function SettingsPage() {
               {activeTab === 'general' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">General</h3>
-                    <p className="text-sm text-text-secondary mt-1">Manage your general preferences</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('general')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('manageGeneralPref')}</p>
                   </div>
                   <div className="premium-card p-5 rounded-2xl">
                     <div className="flex items-center justify-between">
@@ -199,8 +211,8 @@ export default function SettingsPage() {
                           <RefreshCw className="w-4 h-4 text-accent-500" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-text-primary">Streaming</p>
-                          <p className="text-xs text-text-secondary mt-0.5">Show responses in real-time as they generate</p>
+                          <p className="text-sm font-medium text-text-primary">{t('streaming')}</p>
+                          <p className="text-xs text-text-secondary mt-0.5">{t('showRealtime')}</p>
                         </div>
                       </div>
                       <Toggle checked={streaming} onChange={() => updateSettings({ streaming: !streaming })} />
@@ -213,8 +225,8 @@ export default function SettingsPage() {
                           <Bell className="w-4 h-4 text-accent-500" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-text-primary">Language</p>
-                          <p className="text-xs text-text-secondary mt-0.5">Interface language (UI text)</p>
+                          <p className="text-sm font-medium text-text-primary">{t('language')}</p>
+                          <p className="text-xs text-text-secondary mt-0.5">{t('interfaceLang')}</p>
                         </div>
                       </div>
                       <select
@@ -234,22 +246,22 @@ export default function SettingsPage() {
               {activeTab === 'appearance' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">Appearance</h3>
-                    <p className="text-sm text-text-secondary mt-1">Customize how the application looks</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('appearance')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('customizeLooks')}</p>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    {(['light', 'dark', 'system'] as const).map(t => (
+                    {(['light', 'dark', 'system'] as const).map(themeValue => (
                       <button
-                        key={t}
-                        onClick={() => { setUITheme(t); updateSettings({ theme: t }) }}
+                        key={themeValue}
+                        onClick={() => { setUITheme(themeValue); updateSettings({ theme: themeValue }) }}
                         className={`p-5 rounded-2xl border-2 text-sm font-medium capitalize transition-all ${
-                          uiTheme === t
+                          uiTheme === themeValue
                             ? 'border-accent-500 bg-accent-500/[0.06] shadow-soft'
                             : 'border-border hover:border-accent-300 dark:hover:border-accent-700 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
                         }`}
                       >
-                        {t === 'light' ? <Sun className="w-6 h-6 mx-auto mb-3 text-accent-500" /> : t === 'dark' ? <Moon className="w-6 h-6 mx-auto mb-3 text-accent-500" /> : <Monitor className="w-6 h-6 mx-auto mb-3 text-accent-500" />}
-                        {t}
+                        {themeValue === 'light' ? <Sun className="w-6 h-6 mx-auto mb-3 text-accent-500" /> : themeValue === 'dark' ? <Moon className="w-6 h-6 mx-auto mb-3 text-accent-500" /> : <Monitor className="w-6 h-6 mx-auto mb-3 text-accent-500" />}
+                        {t(themeValue as any)}
                       </button>
                     ))}
                   </div>
@@ -260,8 +272,8 @@ export default function SettingsPage() {
               {activeTab === 'provider' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">AI Provider</h3>
-                    <p className="text-sm text-text-secondary mt-1">Select and configure your AI providers</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('aiProvider')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('selectAndConfigureProviders')}</p>
                   </div>
                   <div className="space-y-3">
                     {providers.map(p => {
@@ -292,7 +304,7 @@ export default function SettingsPage() {
                               </p>
                             )}
                           </div>
-                          {!configured && <span className="text-xs px-2.5 py-1 bg-warning/10 text-warning rounded-lg font-medium whitespace-nowrap">API Key Required</span>}
+                          {!configured && <span className="text-xs px-2.5 py-1 bg-warning/10 text-warning rounded-lg font-medium whitespace-nowrap">{t('apiKeyRequired')}</span>}
                           {isSelected && configured && (
                             <div className="w-6 h-6 rounded-full bg-accent-600 flex items-center justify-center shadow-soft flex-shrink-0">
                               <div className="w-2 h-2 bg-white rounded-full" />
@@ -304,7 +316,7 @@ export default function SettingsPage() {
                   </div>
                   {loadingModels && (
                     <div className="flex items-center gap-2 text-sm text-text-secondary px-1">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Loading models...
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> {t('loadingModels')}
                     </div>
                   )}
                 </div>
@@ -314,8 +326,8 @@ export default function SettingsPage() {
               {activeTab === 'models' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">Model Settings</h3>
-                    <p className="text-sm text-text-secondary mt-1">Configure AI model parameters</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('modelSettings')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('configureModelParams')}</p>
                   </div>
                   <div className="premium-card p-5 rounded-2xl">
                     <div className="flex items-center justify-between mb-4">
@@ -324,17 +336,17 @@ export default function SettingsPage() {
                           <Brain className="w-4 h-4 text-accent-500" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-text-primary">Default Model</p>
-                          <p className="text-xs text-text-secondary mt-0.5">Active provider: <span className="font-medium text-accent-600 dark:text-accent-400">{PROVIDER_INFO[defaultProvider as keyof typeof PROVIDER_INFO]?.name || defaultProvider}</span></p>
+                          <p className="text-sm font-semibold text-text-primary">{t('defaultModel')}</p>
+                          <p className="text-xs text-text-secondary mt-0.5">{t('activeProvider')}: <span className="font-medium text-accent-600 dark:text-accent-400">{PROVIDER_INFO[defaultProvider as keyof typeof PROVIDER_INFO]?.name || defaultProvider}</span></p>
                         </div>
                       </div>
                       <button onClick={() => loadModels(defaultProvider)} className="text-xs text-accent-600 hover:text-accent-700 font-medium flex items-center gap-1.5 px-3 py-1.5 bg-accent-500/10 rounded-xl transition-colors">
-                        <RefreshCw className={`w-3 h-3 ${loadingModels ? 'animate-spin' : ''}`} /> Refresh
+                        <RefreshCw className={`w-3 h-3 ${loadingModels ? 'animate-spin' : ''}`} /> {t('refresh')}
                       </button>
                     </div>
                     {loadingModels ? (
                       <div className="flex items-center gap-2.5 px-4 py-3.5 bg-background/60 border border-border/60 rounded-xl text-sm text-text-secondary">
-                        <RefreshCw className="w-4 h-4 animate-spin text-accent-500" /> Loading models...
+                        <RefreshCw className="w-4 h-4 animate-spin text-accent-500" /> {t('loadingModels')}
                       </div>
                     ) : (
                       <select
@@ -353,16 +365,16 @@ export default function SettingsPage() {
                         <Sliders className="w-4 h-4 text-accent-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-text-primary">Temperature: <span className="text-accent-600">{temperature}</span></p>
-                        <p className="text-xs text-text-secondary mt-0.5">Controls randomness. Lower = more focused, Higher = more creative.</p>
+                        <p className="text-sm font-semibold text-text-primary">{t('temperatureLabel')}: <span className="text-accent-600">{temperature}</span></p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('temperatureDesc')}</p>
                       </div>
                     </div>
                     <input type="range" min="0" max="2" step="0.1" value={temperature}
                       onChange={e => updateSettings({ temperature: parseFloat(e.target.value) })} className="w-full accent-accent-600" />
                     <div className="flex justify-between text-[10px] text-text-secondary/50 mt-1 px-0.5">
-                      <span>Precise</span>
-                      <span>Balanced</span>
-                      <span>Creative</span>
+                      <span>{t('precise')}</span>
+                      <span>{t('balanced')}</span>
+                      <span>{t('creative')}</span>
                     </div>
                   </div>
                   <div className="premium-card p-5 rounded-2xl">
@@ -371,8 +383,8 @@ export default function SettingsPage() {
                         <Brain className="w-4 h-4 text-accent-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-text-primary">Max Tokens: <span className="text-accent-600">{maxTokens}</span></p>
-                        <p className="text-xs text-text-secondary mt-0.5">Maximum length of the AI response.</p>
+                        <p className="text-sm font-semibold text-text-primary">{t('maxTokensLabel')}: <span className="text-accent-600">{maxTokens}</span></p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('maxTokensDesc')}</p>
                       </div>
                     </div>
                     <input type="range" min="256" max="32768" step="256" value={maxTokens}
@@ -390,7 +402,7 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-text-primary">Top P: <span className="text-accent-600">{topP}</span></p>
-                        <p className="text-xs text-text-secondary mt-0.5">Nucleus sampling. Lower = more conservative outputs.</p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('topPDesc')}</p>
                       </div>
                     </div>
                     <input type="range" min="0" max="1" step="0.05" value={topP}
@@ -402,8 +414,8 @@ export default function SettingsPage() {
                         <Keyboard className="w-4 h-4 text-accent-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-text-primary">System Prompt</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Custom instructions for the AI to follow.</p>
+                        <p className="text-sm font-semibold text-text-primary">{t('systemPrompt')}</p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('systemPromptDesc')}</p>
                       </div>
                     </div>
                     <textarea value={systemPrompt} onChange={e => updateSettings({ systemPrompt: e.target.value })}
@@ -417,28 +429,28 @@ export default function SettingsPage() {
               {activeTab === 'notifications' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">Notifications</h3>
-                    <p className="text-sm text-text-secondary mt-1">Manage your notification preferences</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('notifications')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('manageNotifPref')}</p>
                   </div>
                   <div className="space-y-3">
                     <div className="glass rounded-2xl p-5 shadow-soft flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-text-primary">Toast Notifications</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Show popup notifications for actions</p>
+                        <p className="text-sm font-medium text-text-primary">{t('toastNotif')}</p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('toastNotifDesc')}</p>
                       </div>
                       <Toggle checked={notifications.toast} onChange={() => handleNotificationChange('toast', !notifications.toast)} />
                     </div>
                     <div className="glass rounded-2xl p-5 shadow-soft flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-text-primary">Sound Effects</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Play sounds for message events</p>
+                        <p className="text-sm font-medium text-text-primary">{t('soundEffects')}</p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('soundEffectsDesc')}</p>
                       </div>
                       <Toggle checked={notifications.sound} onChange={() => handleNotificationChange('sound', !notifications.sound)} />
                     </div>
                     <div className="glass rounded-2xl p-5 shadow-soft flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-text-primary">Desktop Notifications</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Browser push notifications</p>
+                        <p className="text-sm font-medium text-text-primary">{t('desktopNotif')}</p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('desktopNotifDesc')}</p>
                       </div>
                       <Toggle
                         checked={notifications.desktop}
@@ -458,13 +470,13 @@ export default function SettingsPage() {
               {activeTab === 'shortcuts' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">Keyboard Shortcuts</h3>
-                    <p className="text-sm text-text-secondary mt-1">Speed up your workflow with shortcuts</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('shortcuts')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('shortcutsDesc')}</p>
                   </div>
                   <div className="glass rounded-2xl shadow-soft divide-y divide-border/60 overflow-hidden">
                     {shortcuts.map((s, i) => (
                       <div key={i} className="flex items-center justify-between px-5 py-3.5">
-                        <span className="text-sm text-text-primary">{s.action}</span>
+                        <span className="text-sm text-text-primary">{getShortcutAction(s.action, t)}</span>
                         <kbd className="px-2.5 py-1 bg-background border border-border rounded-lg text-xs font-mono text-text-secondary">{s.keys}</kbd>
                       </div>
                     ))}
@@ -476,26 +488,26 @@ export default function SettingsPage() {
               {activeTab === 'privacy' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">Privacy & Data</h3>
-                    <p className="text-sm text-text-secondary mt-1">Manage your data and privacy</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('privacyData')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('privacyDataDesc')}</p>
                   </div>
                   <div className="space-y-3">
                     <div className="glass rounded-2xl p-5 shadow-soft flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-text-primary">Export Data</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Download all your chat history as JSON</p>
+                        <p className="text-sm font-medium text-text-primary">{t('exportData')}</p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('exportDataDesc')}</p>
                       </div>
                       <button onClick={handleExportData} className="flex items-center gap-1.5 px-3.5 py-2 bg-accent-500/10 text-accent-600 dark:text-accent-400 rounded-xl text-sm font-medium hover:bg-accent-500/15 transition-all">
-                        <Download className="w-4 h-4" /> Export
+                        <Download className="w-4 h-4" /> {t('export')}
                       </button>
                     </div>
                     <div className="glass rounded-2xl p-5 shadow-soft flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-text-primary">Clear All History</p>
-                        <p className="text-xs text-text-secondary mt-0.5">Permanently delete all chat sessions</p>
+                        <p className="text-sm font-medium text-text-primary">{t('clearAllHistory')}</p>
+                        <p className="text-xs text-text-secondary mt-0.5">{t('clearAllHistoryDesc')}</p>
                       </div>
                       <button onClick={handleClearHistory} className="flex items-center gap-1.5 px-3.5 py-2 bg-error/10 text-error rounded-xl text-sm font-medium hover:bg-error/20 transition-all">
-                        <Trash2 className="w-4 h-4" /> Clear
+                        <Trash2 className="w-4 h-4" /> {t('clear')}
                       </button>
                     </div>
                   </div>
@@ -506,8 +518,8 @@ export default function SettingsPage() {
               {activeTab === 'about' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-text-primary tracking-tight">About</h3>
-                    <p className="text-sm text-text-secondary mt-1">Application information</p>
+                    <h3 className="text-xl font-bold text-text-primary tracking-tight">{t('about')}</h3>
+                    <p className="text-sm text-text-secondary mt-1">{t('appInfo')}</p>
                   </div>
                   <div className="glass rounded-2xl p-6 shadow-soft">
                     <div className="flex items-center gap-4 mb-5">
@@ -515,12 +527,12 @@ export default function SettingsPage() {
                         <span className="text-white font-bold text-xl">AI</span>
                       </div>
                       <div>
-                        <h4 className="font-bold text-text-primary text-lg">AI Chat Premium</h4>
+                        <h4 className="font-bold text-text-primary text-lg">{t('chatPremium')}</h4>
                         <p className="text-sm text-text-secondary mt-0.5">Version 1.0.0</p>
                       </div>
                     </div>
                     <p className="text-sm text-text-secondary leading-relaxed">
-                      Multi-provider AI Chat application with premium UI. Supports multiple AI providers through a unified, elegant interface designed for productivity and delight.
+                      {t('appDesc')}
                     </p>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useChatStore, useSettingsStore, useUIStore } from '@/lib/store'
+import { useTranslation } from '@/lib/store/language'
 import { PROVIDER_INFO, getModelsForProvider } from '@/lib/providers'
 import type { AIModel } from '@/lib/types'
 import { Menu, Moon, Sun, ChevronDown, RefreshCw, AlertCircle, User, Settings, LogOut, Sparkles } from 'lucide-react'
@@ -9,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 
 export function Header() {
+  const { t } = useTranslation()
   const { activeSessionId, sidebarOpen, setSidebarOpen, sessions, providerStatus } = useChatStore()
   const { defaultProvider, defaultModel, updateSettings } = useSettingsStore()
   const { theme, setTheme } = useUIStore()
@@ -98,7 +100,7 @@ export function Header() {
         )}
         <div className="min-w-0">
           <h1 className="text-sm font-semibold text-text-primary truncate flex items-center gap-2">
-            {session?.title || 'AI Chat Premium'}
+            {session?.title || t('chatPremium')}
             {session && <Sparkles className="w-3 h-3 text-accent-500/60 hidden sm:inline" />}
           </h1>
           <p className="text-xs text-text-secondary flex items-center gap-1.5">
@@ -107,7 +109,7 @@ export function Header() {
             <span className="text-text-secondary/30">·</span>
             <span className="text-text-secondary/80">{activeModel?.split('/').pop()?.replace(/-/g, ' ')}</span>
             {providerStatus[activeProvider] === false && (
-              <span className="ml-1 px-1.5 py-0.5 bg-warning/10 text-warning text-[10px] font-medium rounded-md">Not Configured</span>
+              <span className="ml-1 px-1.5 py-0.5 bg-warning/10 text-warning text-[10px] font-medium rounded-md">{t('noKey')}</span>
             )}
           </p>
         </div>
@@ -217,11 +219,11 @@ export function Header() {
                 <div className="p-1.5">
                   <Link href="/profile" onClick={() => setShowUserMenu(false)}
                     className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
-                    <User className="w-4 h-4" /> Profile
+                    <User className="w-4 h-4" /> {t('profile')}
                   </Link>
                   <Link href="/settings" onClick={() => setShowUserMenu(false)}
                     className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
-                    <Settings className="w-4 h-4" /> Settings
+                    <Settings className="w-4 h-4" /> {t('settings')}
                   </Link>
                   <div className="my-1 border-t border-border" />
                   <button onClick={async () => {
@@ -233,7 +235,7 @@ export function Header() {
                     window.location.href = '/login'
                   }}
                     className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-error hover:bg-error/10 rounded-xl transition-colors">
-                    <LogOut className="w-4 h-4" /> Logout
+                    <LogOut className="w-4 h-4" /> {t('logout')}
                   </button>
                 </div>
               </motion.div>

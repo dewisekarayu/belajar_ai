@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useChatStore } from '@/lib/store'
+import { useTranslation } from '@/lib/store/language'
 import { PROVIDER_INFO } from '@/lib/providers'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { MessageSquare, Cpu, Activity, TrendingUp, Sparkles } from 'lucide-react'
@@ -17,6 +18,7 @@ const itemVariants = {
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
   const { sessions } = useChatStore()
   const [providerStatus, setProviderStatus] = useState<Record<string, boolean>>({})
 
@@ -54,10 +56,10 @@ export default function DashboardPage() {
   }), [])
 
   const stats = [
-    { label: 'Total Chats', value: totalChats, icon: MessageSquare, gradient: 'from-accent-500 to-accent-600' },
-    { label: 'Messages', value: totalMessages, icon: Activity, gradient: 'from-accent-400 to-accent-500' },
-    { label: 'Providers Active', value: configuredProviders, icon: Cpu, gradient: 'from-accent-500 to-accent-600' },
-    { label: 'Avg. Messages/Chat', value: totalChats > 0 ? Math.round(totalMessages / totalChats) : 0, icon: TrendingUp, gradient: 'from-accent-400 to-accent-500' },
+    { label: t('totalChatsLabel'), value: totalChats, icon: MessageSquare, gradient: 'from-accent-500 to-accent-600' },
+    { label: t('messagesLabel'), value: totalMessages, icon: Activity, gradient: 'from-accent-400 to-accent-500' },
+    { label: t('providersActiveLabel'), value: configuredProviders, icon: Cpu, gradient: 'from-accent-500 to-accent-600' },
+    { label: t('avgMessagesChatLabel'), value: totalChats > 0 ? Math.round(totalMessages / totalChats) : 0, icon: TrendingUp, gradient: 'from-accent-400 to-accent-500' },
   ]
 
   return (
@@ -71,8 +73,8 @@ export default function DashboardPage() {
         className="max-w-6xl mx-auto"
       >
         <motion.div variants={itemVariants} className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Dashboard</h1>
-          <p className="text-sm text-text-secondary mt-1">Your AI usage overview and statistics</p>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">{t('dashboardTitle')}</h1>
+          <p className="text-sm text-text-secondary mt-1">{t('dashboardDesc')}</p>
         </motion.div>
 
         {/* Stats grid */}
@@ -101,7 +103,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="p-6 rounded-2xl glass shadow-soft border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-text-primary">Weekly Activity</h3>
+              <h3 className="text-sm font-semibold text-text-primary">{t('weeklyActivityLabel')}</h3>
               <TrendingUp className="w-4 h-4 text-accent-500" />
             </div>
             <ResponsiveContainer width="100%" height={250}>
@@ -119,7 +121,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="p-6 rounded-2xl glass shadow-soft border border-border">
-            <h3 className="text-sm font-semibold text-text-primary mb-4">Provider Usage</h3>
+            <h3 className="text-sm font-semibold text-text-primary mb-4">{t('providerUsageLabel')}</h3>
             {providerData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
@@ -132,7 +134,7 @@ export default function DashboardPage() {
             ) : (
               <div className="flex flex-col items-center justify-center h-[250px] text-text-secondary text-sm gap-3">
                 <Sparkles className="w-8 h-8 opacity-30" />
-                <span>Start chatting to see statistics</span>
+                <span>{t('startChattingStats')}</span>
               </div>
             )}
           </div>

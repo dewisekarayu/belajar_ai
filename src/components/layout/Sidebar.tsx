@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChatStore, useSettingsStore, useUIStore } from '@/lib/store'
+import { useTranslation } from '@/lib/store/language'
 import { PROVIDER_INFO } from '@/lib/providers'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,18 +13,18 @@ import {
 } from 'lucide-react'
 import type { DBSession } from '@/lib/store'
 
-function groupSessionsByTime(sessions: DBSession[]) {
+function groupSessionsByTime(sessions: DBSession[], t: (key: any) => string) {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const yesterday = new Date(today.getTime() - 86400000)
   const weekAgo = new Date(today.getTime() - 7 * 86400000)
 
   const groups: { label: string; items: DBSession[] }[] = [
-    { label: 'Pinned', items: [] },
-    { label: 'Today', items: [] },
-    { label: 'Yesterday', items: [] },
-    { label: 'Previous 7 Days', items: [] },
-    { label: 'Older', items: [] },
+    { label: t('pinned'), items: [] },
+    { label: t('today'), items: [] },
+    { label: t('yesterday'), items: [] },
+    { label: t('previous7Days'), items: [] },
+    { label: t('older'), items: [] },
   ]
 
   for (const s of sessions) {
@@ -40,6 +41,7 @@ function groupSessionsByTime(sessions: DBSession[]) {
 
 export function Sidebar() {
   const router = useRouter()
+  const { t } = useTranslation()
   const { sessions, activeSessionId, sidebarOpen, searchQuery, setActiveSession,
     setSidebarOpen, setSearchQuery, deleteSession, renameSession, setSessions,
     createSession, providerStatus, setProviderStatus } = useChatStore()
@@ -82,7 +84,7 @@ export function Sidebar() {
     [sortedSessions, searchQuery]
   )
 
-  const groupedSessions = useMemo(() => groupSessionsByTime(filteredSessions), [filteredSessions])
+  const groupedSessions = useMemo(() => groupSessionsByTime(filteredSessions, t), [filteredSessions, t])
 
   const handleNewChat = async () => {
     if (isCreating) return
@@ -131,7 +133,7 @@ export function Sidebar() {
           .join('\n\n')
         await navigator.clipboard.writeText(`# ${session.title}\n\n${text}`)
         const { notifySuccess } = await import('@/components/notification/Toast')
-        notifySuccess('Chat copied to clipboard')
+        notifySuccess(t('chatCopied'))
       }
     } catch {}
     setContextMenu(null)
@@ -176,7 +178,7 @@ export function Sidebar() {
             </span>
             <span className="flex-1 truncate text-[13px] leading-snug font-medium">{session.title}</span>
             {session.pinned && <Pin className="w-3 h-3 text-accent-500 flex-shrink-0 opacity-60" />}
-            {!isConfigured && <span className="text-[9px] px-1.5 py-0.5 bg-warning/10 text-warning rounded-full font-medium">No Key</span>}
+            {!isConfigured && <span className="text-[9px] px-1.5 py-0.5 bg-warning/10 text-warning rounded-full font-medium">{t('noKey')}</span>}
             <button onClick={e => { e.stopPropagation(); setContextMenu(contextMenu === session.id ? null : session.id) }}
               className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/[0.05] dark:hover:bg-white/[0.06] rounded-lg transition-all">
               <MoreHorizontal className="w-3.5 h-3.5" />
@@ -194,21 +196,21 @@ export function Sidebar() {
               onClick={e => e.stopPropagation()}>
               <button onClick={() => startRename(session.id, session.title)}
                 className="flex items-center gap-2.5 w-full px-3 py-2 text-[13px] rounded-lg hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors">
-                <Edit3 className="w-3.5 h-3.5 text-text-secondary" /> Rename
+                <Edit3 className="w-3.5 h-3.5 text-text-secondary" /> {t('rename')}
               </button>
               <button onClick={() => togglePin(session)}
                 className="flex items-center gap-2.5 w-full px-3 py-2 text-[13px] rounded-lg hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors">
                 {session.pinned ? <PinOff className="w-3.5 h-3.5 text-text-secondary" /> : <Pin className="w-3.5 h-3.5 text-text-secondary" />}
-                {session.pinned ? 'Unpin' : 'Pin to top'}
+                {session.pinned ? t('unpin') : t('pinToTop')}
               </button>
               <button onClick={() => handleShareSession(session)}
                 className="flex items-center gap-2.5 w-full px-3 py-2 text-[13px] rounded-lg hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors">
-                <Share2 className="w-3.5 h-3.5 text-text-secondary" /> Share / Copy
+                <Share2 className="w-3.5 h-3.5 text-text-secondary" /> {t('shareCopy')}
               </button>
               <div className="my-1 border-t border-border" />
               <button onClick={() => { deleteSession(session.id); setContextMenu(null) }}
                 className="flex items-center gap-2.5 w-full px-3 py-2 text-[13px] rounded-lg hover:bg-error/10 text-error transition-colors">
-                <Trash2 className="w-3.5 h-3.5" /> Delete
+                <Trash2 className="w-3.5 h-3.5" /> {t('delete')}
               </button>
             </motion.div>
           )}
@@ -248,7 +250,7 @@ export function Sidebar() {
               className={cn('group relative w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-600 hover:bg-accent-700 text-white rounded-xl font-medium text-sm transition-all duration-150 active:scale-[0.98] shadow-soft hover:shadow-md overflow-hidden',
                 isCreating ? 'opacity-60 cursor-not-allowed' : '')}>
               <span className="relative z-10 flex items-center gap-2">
-                <MessageSquarePlus className="w-4 h-4" /> New Chat
+                <MessageSquarePlus className="w-4 h-4" /> {t('newChat')}
               </span>
               <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
             </button>
@@ -258,7 +260,7 @@ export function Sidebar() {
           <div className="px-3 pb-2">
             <div className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary/60 group-focus-within:text-accent-500 transition-colors" />
-              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search chats..."
+              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t('searchChats')}
                 className="w-full pl-9 pr-3 py-2.5 bg-black/[0.03] dark:bg-white/[0.04] border border-transparent focus:border-accent-500/30 focus:bg-surface rounded-xl text-[13px] outline-none transition-all placeholder:text-text-secondary/40" />
             </div>
           </div>
@@ -274,8 +276,8 @@ export function Sidebar() {
             {filteredSessions.length === 0 && (
               <div className="flex flex-col items-center justify-center text-center py-12 px-4">
                 <Sparkles className="w-8 h-8 text-text-secondary/20 mb-3" />
-                <p className="text-xs text-text-secondary/40">No chats yet</p>
-                <p className="text-[10px] text-text-secondary/30 mt-1">Start a new conversation</p>
+                <p className="text-xs text-text-secondary/40">{t('noChatsYet')}</p>
+                <p className="text-[10px] text-text-secondary/30 mt-1">{t('startNewConversation')}</p>
               </div>
             )}
           </nav>
@@ -285,17 +287,17 @@ export function Sidebar() {
             <button onClick={() => { const next = theme === 'light' ? 'dark' : 'light'; setTheme(next as any) }}
               className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
               {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-              {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+              {theme === 'light' ? t('darkMode') : t('lightMode')}
             </button>
             <a href="/settings" className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
-              <Settings className="w-4 h-4" /> Settings
+              <Settings className="w-4 h-4" /> {t('settings')}
             </a>
             <a href="/profile" className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-text-secondary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] rounded-xl transition-colors">
-              <User className="w-4 h-4" /> Profile
+              <User className="w-4 h-4" /> {t('profile')}
             </a>
             <button onClick={handleLogout}
               className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-error hover:bg-error/10 rounded-xl transition-colors">
-              <LogOut className="w-4 h-4" /> Logout
+              <LogOut className="w-4 h-4" /> {t('logout')}
             </button>
           </div>
         </motion.aside>
