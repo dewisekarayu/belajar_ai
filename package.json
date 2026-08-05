@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "9Router backend for Lumiox AI Chat",
   "scripts": {
-    "start": "9router"
+    "start": "9router --port 7860 --host 0.0.0.0 --no-browser --log"
   },
   "dependencies": {
     "9router": "latest"
