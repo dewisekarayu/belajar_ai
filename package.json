@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "9Router backend for Lumiox AI Chat",
   "scripts": {
-    "start": "node node_modules/9router/app/custom-server.js"
+    "start": "node start.js"
   },
   "dependencies": {
     "9router": "latest"
